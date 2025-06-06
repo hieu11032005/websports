@@ -65,7 +65,7 @@ def article_detail(slug):
     article = Article.query.filter_by(slug=slug, is_published=True).first_or_404()
     
     # Tăng lượt xem
-    article.view_count += 1
+    article.views_count += 1
     db.session.commit()
     
     # Lấy bình luận
@@ -406,14 +406,14 @@ def users():
 def popular_articles():
     """API lấy bài viết phổ biến"""
     articles = Article.query.filter_by(is_published=True)\
-        .order_by(Article.view_count.desc())\
+        .order_by(Article.views_count.desc())\
         .limit(10).all()
     
     return jsonify([{
         'id': article.id,
         'title': article.title,
         'slug': article.slug,
-        'view_count': article.view_count,
+        'view_count': article.views_count,
         'published_at': article.published_at.isoformat() if article.published_at else None
     } for article in articles])
 
@@ -460,7 +460,7 @@ def inject_global_data():
     
     # Lấy bài viết phổ biến cho sidebar
     popular_articles = Article.query.filter_by(is_published=True)\
-        .order_by(Article.view_count.desc()).limit(5).all()
+        .order_by(Article.views_count.desc()).limit(5).all()
     
     return {
         'global_categories': categories,

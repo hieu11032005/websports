@@ -19,17 +19,20 @@ class User(UserMixin, db.Model):
     email = db.Column(db.String(120), unique=True, nullable=False, index=True)
     password_hash = db.Column(db.String(256), nullable=False)
     full_name = db.Column(db.String(100), nullable=True)
-    bio = db.Column(db.Text, nullable=True)
     avatar_url = db.Column(db.String(200), nullable=True)
     
-    # Vai trò người dùng
+    # Vai trò người dùng - matching database schema
     is_admin = db.Column(db.Boolean, default=False)
-    is_author = db.Column(db.Boolean, default=False)
-    is_active = db.Column(db.Boolean, default=True)
+    is_editor = db.Column(db.Boolean, default=False)
+    user_is_active = db.Column('is_active', db.Boolean, default=True)  # Renamed to avoid UserMixin conflict
+    
+    # Statistics
+    articles_count = db.Column(db.Integer, default=0)
+    comments_count = db.Column(db.Integer, default=0)
     
     # Thời gian
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    last_seen = db.Column(db.DateTime, default=datetime.utcnow)
+    last_login = db.Column(db.DateTime, nullable=True)
     
     # Relationships
     articles = db.relationship('Article', backref='author', lazy='dynamic', cascade='all, delete-orphan')
@@ -57,6 +60,9 @@ class Category(db.Model):
     icon = db.Column(db.String(50), nullable=True)  # CSS class cho icon
     color = db.Column(db.String(7), default='#007bff')  # Mã màu hex
     is_active = db.Column(db.Boolean, default=True)
+    sort_order = db.Column(db.Integer, default=0)
+    articles_count = db.Column(db.Integer, default=0)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
     # Relationships
     articles = db.relationship('Article', backref='category', lazy='dynamic')
