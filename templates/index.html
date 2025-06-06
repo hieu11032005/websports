@@ -1,0 +1,374 @@
+{% extends "base.html" %}
+
+{% block title %}Tin Tức Thể Thao - Cập nhật tin tức thể thao mới nhất{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header Advertisement -->
+    {% if ads_header %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="advertisement-banner text-center">
+                {% if ads_header.image_url %}
+                <a href="{{ ads_header.link_url or '#' }}" target="_blank" rel="noopener">
+                    <img src="{{ ads_header.image_url }}" alt="{{ ads_header.title }}" class="img-fluid">
+                </a>
+                {% else %}
+                <div class="bg-light p-4 rounded">
+                    <h5>{{ ads_header.title }}</h5>
+                    <p>{{ ads_header.content }}</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    
+    <!-- Featured Articles Section -->
+    {% if featured_articles %}
+    <div class="row mb-5">
+        <div class="col-12">
+            <h2 class="section-title mb-4">
+                <i class="fas fa-star text-warning me-2"></i>
+                Tin nổi bật
+            </h2>
+            
+            <div class="row">
+                {% for article in featured_articles %}
+                <div class="col-lg-4 col-md-6 mb-4">
+                    <div class="card featured-card h-100 shadow-sm">
+                        {% if article.featured_image %}
+                        <div class="position-relative">
+                            <img src="{{ url_for('static', filename='uploads/articles/' + article.featured_image) }}" 
+                                 class="card-img-top" alt="{{ article.title }}" style="height: 200px; object-fit: cover;">
+                            <span class="badge bg-danger position-absolute top-0 start-0 m-2">
+                                <i class="fas fa-star me-1"></i>Nổi bật
+                            </span>
+                        </div>
+                        {% endif %}
+                        
+                        <div class="card-body">
+                            <div class="d-flex align-items-center mb-2">
+                                <span class="badge bg-primary me-2">{{ article.category.name }}</span>
+                                <small class="text-muted">
+                                    <i class="fas fa-clock me-1"></i>
+                                    {{ article.published_at|timeago }}
+                                </small>
+                            </div>
+                            
+                            <h5 class="card-title">
+                                <a href="{{ url_for('main.article_detail', slug=article.slug) }}" 
+                                   class="text-decoration-none text-dark">
+                                    {{ article.title }}
+                                </a>
+                            </h5>
+                            
+                            {% if article.summary %}
+                            <p class="card-text text-muted">{{ article.summary|truncate(120) }}</p>
+                            {% endif %}
+                            
+                            <div class="d-flex justify-content-between align-items-center">
+                                <small class="text-muted">
+                                    <i class="fas fa-user me-1"></i>{{ article.author.full_name or article.author.username }}
+                                </small>
+                                <small class="text-muted">
+                                    <i class="fas fa-eye me-1"></i>{{ article.view_count }} lượt xem
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    
+    <div class="row">
+        <!-- Main Content -->
+        <div class="col-lg-8">
+            <!-- Latest Articles -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="section-title mb-0">
+                    <i class="fas fa-newspaper text-primary me-2"></i>
+                    Tin tức mới nhất
+                </h2>
+                
+                <!-- Category Filter -->
+                <div class="dropdown">
+                    <button class="btn btn-outline-secondary dropdown-toggle" type="button" 
+                            data-bs-toggle="dropdown">
+                        <i class="fas fa-filter me-1"></i>Lọc theo danh mục
+                    </button>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="{{ url_for('main.index') }}">Tất cả</a></li>
+                        {% for category in global_categories %}
+                        <li>
+                            <a class="dropdown-item" href="{{ url_for('main.category', slug=category.slug) }}">
+                                {% if category.icon %}
+                                <i class="{{ category.icon }} me-2"></i>
+                                {% endif %}
+                                {{ category.name }}
+                            </a>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+            
+            <!-- Articles Grid -->
+            {% if articles.items %}
+            <div class="row">
+                {% for article in articles.items %}
+                <div class="col-md-6 mb-4">
+                    <div class="card article-card h-100 shadow-sm">
+                        {% if article.featured_image %}
+                        <div class="position-relative">
+                            <img src="{{ url_for('static', filename='uploads/articles/' + article.featured_image) }}" 
+                                 class="card-img-top" alt="{{ article.title }}" style="height: 180px; object-fit: cover;">
+                            <span class="badge position-absolute top-0 start-0 m-2" 
+                                  style="background-color: {{ article.category.color }}">
+                                {{ article.category.name }}
+                            </span>
+                        </div>
+                        {% endif %}
+                        
+                        <div class="card-body">
+                            <h5 class="card-title">
+                                <a href="{{ url_for('main.article_detail', slug=article.slug) }}" 
+                                   class="text-decoration-none text-dark">
+                                    {{ article.title }}
+                                </a>
+                            </h5>
+                            
+                            {% if article.summary %}
+                            <p class="card-text text-muted">{{ article.summary|truncate(100) }}</p>
+                            {% else %}
+                            <p class="card-text text-muted">{{ article.content|truncate_html(100) }}</p>
+                            {% endif %}
+                            
+                            <div class="d-flex justify-content-between align-items-center">
+                                <small class="text-muted">
+                                    <i class="fas fa-clock me-1"></i>
+                                    {{ article.published_at|timeago }}
+                                </small>
+                                <small class="text-muted">
+                                    <i class="fas fa-eye me-1"></i>{{ article.view_count }}
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            
+            <!-- Pagination -->
+            {% if articles.pages > 1 %}
+            <nav aria-label="Phân trang bài viết">
+                <ul class="pagination justify-content-center">
+                    {% if articles.has_prev %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('main.index', page=articles.prev_num) }}">
+                            <i class="fas fa-chevron-left"></i> Trước
+                        </a>
+                    </li>
+                    {% endif %}
+                    
+                    {% for page_num in articles.iter_pages() %}
+                        {% if page_num %}
+                            {% if page_num != articles.page %}
+                            <li class="page-item">
+                                <a class="page-link" href="{{ url_for('main.index', page=page_num) }}">{{ page_num }}</a>
+                            </li>
+                            {% else %}
+                            <li class="page-item active">
+                                <span class="page-link">{{ page_num }}</span>
+                            </li>
+                            {% endif %}
+                        {% else %}
+                        <li class="page-item disabled">
+                            <span class="page-link">…</span>
+                        </li>
+                        {% endif %}
+                    {% endfor %}
+                    
+                    {% if articles.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('main.index', page=articles.next_num) }}">
+                            Sau <i class="fas fa-chevron-right"></i>
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+            
+            {% else %}
+            <div class="text-center py-5">
+                <i class="fas fa-newspaper fa-3x text-muted mb-3"></i>
+                <h4>Chưa có bài viết nào</h4>
+                <p class="text-muted">Hãy quay lại sau để xem những tin tức mới nhất!</p>
+            </div>
+            {% endif %}
+        </div>
+        
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <!-- Popular Articles Widget -->
+            {% if popular_articles %}
+            <div class="card mb-4 shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-fire me-2"></i>
+                        Bài viết phổ biến
+                    </h5>
+                </div>
+                <div class="card-body p-0">
+                    {% for article in popular_articles %}
+                    <div class="border-bottom p-3 {% if not loop.last %}border-bottom{% endif %}">
+                        <div class="row align-items-center">
+                            {% if article.featured_image %}
+                            <div class="col-4">
+                                <img src="{{ url_for('static', filename='uploads/articles/' + article.featured_image) }}" 
+                                     class="img-fluid rounded" alt="{{ article.title }}" 
+                                     style="height: 60px; object-fit: cover;">
+                            </div>
+                            <div class="col-8">
+                            {% else %}
+                            <div class="col-12">
+                            {% endif %}
+                                <h6 class="mb-1">
+                                    <a href="{{ url_for('main.article_detail', slug=article.slug) }}" 
+                                       class="text-decoration-none text-dark">
+                                        {{ article.title|truncate(60) }}
+                                    </a>
+                                </h6>
+                                <small class="text-muted">
+                                    <i class="fas fa-eye me-1"></i>{{ article.view_count }} lượt xem
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+            
+            <!-- Categories Widget -->
+            {% if global_categories %}
+            <div class="card mb-4 shadow-sm">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-list me-2"></i>
+                        Danh mục thể thao
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        {% for category in global_categories %}
+                        <div class="col-6 mb-2">
+                            <a href="{{ url_for('main.category', slug=category.slug) }}" 
+                               class="btn btn-outline-secondary btn-sm w-100 text-start">
+                                {% if category.icon %}
+                                <i class="{{ category.icon }} me-2" style="color: {{ category.color }}"></i>
+                                {% endif %}
+                                {{ category.name }}
+                            </a>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+            
+            <!-- Sidebar Advertisements -->
+            {% if ads_sidebar %}
+            <div class="card mb-4 shadow-sm">
+                <div class="card-header bg-warning text-dark">
+                    <h6 class="mb-0">
+                        <i class="fas fa-bullhorn me-2"></i>
+                        Quảng cáo
+                    </h6>
+                </div>
+                <div class="card-body">
+                    {% for ad in ads_sidebar %}
+                    <div class="advertisement-item mb-3 {% if not loop.last %}border-bottom pb-3{% endif %}">
+                        {% if ad.image_url %}
+                        <a href="{{ ad.link_url or '#' }}" target="_blank" rel="noopener">
+                            <img src="{{ ad.image_url }}" alt="{{ ad.title }}" class="img-fluid rounded">
+                        </a>
+                        {% endif %}
+                        {% if ad.content %}
+                        <div class="mt-2">
+                            <h6>{{ ad.title }}</h6>
+                            <p class="small text-muted">{{ ad.content|truncate(80) }}</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+            
+            <!-- Weather Widget (placeholder) -->
+            <div class="card mb-4 shadow-sm">
+                <div class="card-header bg-info text-white">
+                    <h6 class="mb-0">
+                        <i class="fas fa-cloud-sun me-2"></i>
+                        Thời tiết
+                    </h6>
+                </div>
+                <div class="card-body text-center">
+                    <div class="weather-info">
+                        <i class="fas fa-sun fa-2x text-warning mb-2"></i>
+                        <h4>28°C</h4>
+                        <p class="mb-0">Hà Nội - Sunny</p>
+                        <small class="text-muted">Cập nhật: {{ moment().format('HH:mm') }}</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Back to Top Button -->
+<button type="button" class="btn btn-primary btn-floating btn-lg" id="back-to-top">
+    <i class="fas fa-arrow-up"></i>
+</button>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Back to top functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const backToTopBtn = document.getElementById('back-to-top');
+    
+    window.addEventListener('scroll', function() {
+        if (window.pageYOffset > 300) {
+            backToTopBtn.style.display = 'block';
+        } else {
+            backToTopBtn.style.display = 'none';
+        }
+    });
+    
+    backToTopBtn.addEventListener('click', function() {
+        window.scrollTo({
+            top: 0,
+            behavior: 'smooth'
+        });
+    });
+});
+
+// Article card hover effects
+document.querySelectorAll('.article-card').forEach(card => {
+    card.addEventListener('mouseenter', function() {
+        this.style.transform = 'translateY(-5px)';
+        this.style.transition = 'transform 0.3s ease';
+    });
+    
+    card.addEventListener('mouseleave', function() {
+        this.style.transform = 'translateY(0)';
+    });
+});
+</script>
+{% endblock %}

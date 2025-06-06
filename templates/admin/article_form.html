@@ -1,0 +1,499 @@
+{% extends "base.html" %}
+
+{% block title %}{{ 'Chỉnh sửa bài viết' if article else 'Tạo bài viết mới' }} - Admin{% endblock %}
+
+{% block extra_head %}
+<!-- CKEditor 5 -->
+<script src="https://cdn.ckeditor.com/ckeditor5/39.0.1/classic/ckeditor.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <!-- Page Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-0">
+                <i class="fas fa-{{ 'edit' if article else 'plus' }} me-2 text-primary"></i>
+                {{ 'Chỉnh sửa bài viết' if article else 'Tạo bài viết mới' }}
+            </h1>
+            {% if article %}
+            <p class="text-muted mb-0">Cập nhật: {{ article.updated_at|datetime }}</p>
+            {% endif %}
+        </div>
+        
+        <div class="d-flex gap-2">
+            <a href="{{ url_for('admin.articles') }}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>
+                Quay lại
+            </a>
+            {% if article %}
+            <a href="{{ url_for('main.article_detail', slug=article.slug) }}" class="btn btn-outline-info" target="_blank">
+                <i class="fas fa-eye me-2"></i>
+                Xem bài viết
+            </a>
+            {% endif %}
+        </div>
+    </div>
+    
+    <form method="POST" enctype="multipart/form-data" id="article-form">
+        {{ form.hidden_tag() }}
+        
+        <div class="row">
+            <!-- Main Content -->
+            <div class="col-lg-8">
+                <!-- Title -->
+                <div class="card mb-4 shadow-sm">
+                    <div class="card-header">
+                        <h6 class="mb-0">
+                            <i class="fas fa-heading me-2"></i>
+                            Tiêu đề bài viết
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        {{ form.title(class="form-control form-control-lg" + (" is-invalid" if form.title.errors else ""), 
+                                      placeholder="Nhập tiêu đề bài viết...", autofocus=True) }}
+                        {% if form.title.errors %}
+                            <div class="invalid-feedback">
+                                {% for error in form.title.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        <div class="form-text">
+                            <span id="title-count">0</span>/200 ký tự
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Summary -->
+                <div class="card mb-4 shadow-sm">
+                    <div class="card-header">
+                        <h6 class="mb-0">
+                            <i class="fas fa-align-left me-2"></i>
+                            Tóm tắt bài viết
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        {{ form.summary(class="form-control", rows="3", 
+                                        placeholder="Viết tóm tắt ngắn gọn về nội dung bài viết...") }}
+                        {% if form.summary.errors %}
+                            <div class="text-danger small mt-1">
+                                {% for error in form.summary.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        <div class="form-text">
+                            <span id="summary-count">0</span>/500 ký tự
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Content -->
+                <div class="card mb-4 shadow-sm">
+                    <div class="card-header">
+                        <h6 class="mb-0">
+                            <i class="fas fa-file-alt me-2"></i>
+                            Nội dung bài viết
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        {{ form.content(class="form-control", id="editor") }}
+                        {% if form.content.errors %}
+                            <div class="text-danger small mt-1">
+                                {% for error in form.content.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <!-- Featured Image -->
+                <div class="card mb-4 shadow-sm">
+                    <div class="card-header">
+                        <h6 class="mb-0">
+                            <i class="fas fa-image me-2"></i>
+                            Ảnh đại diện
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        {% if article and article.featured_image %}
+                        <div class="current-image mb-3">
+                            <label class="form-label">Ảnh hiện tại:</label>
+                            <div class="position-relative d-inline-block">
+                                <img src="{{ url_for('static', filename='uploads/articles/' + article.featured_image) }}" 
+                                     alt="Featured Image" class="img-fluid rounded" style="max-height: 200px;">
+                                <button type="button" class="btn btn-sm btn-danger position-absolute top-0 end-0 m-1" 
+                                        onclick="removeImage()">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                        </div>
+                        {% endif %}
+                        
+                        {{ form.featured_image(class="form-control", accept="image/*") }}
+                        {% if form.featured_image.errors %}
+                            <div class="text-danger small mt-1">
+                                {% for error in form.featured_image.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        <div class="form-text">Định dạng: JPG, PNG, GIF. Kích thước tối đa: 5MB. Kích thước khuyến nghị: 1200x630px</div>
+                        
+                        <!-- Image Preview -->
+                        <div id="image-preview" class="mt-3" style="display: none;">
+                            <label class="form-label">Xem trước:</label>
+                            <img id="preview-img" class="img-fluid rounded" style="max-height: 200px;">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Sidebar -->
+            <div class="col-lg-4">
+                <!-- Publish Options -->
+                <div class="card mb-4 shadow-sm">
+                    <div class="card-header">
+                        <h6 class="mb-0">
+                            <i class="fas fa-upload me-2"></i>
+                            Tùy chọn xuất bản
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <!-- Status -->
+                        <div class="mb-3">
+                            <div class="form-check">
+                                {{ form.is_published(class="form-check-input") }}
+                                {{ form.is_published.label(class="form-check-label") }}
+                            </div>
+                            {% if form.is_published.errors %}
+                                <div class="text-danger small">
+                                    {% for error in form.is_published.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Featured -->
+                        <div class="mb-3">
+                            <div class="form-check">
+                                {{ form.is_featured(class="form-check-input") }}
+                                {{ form.is_featured.label(class="form-check-label") }}
+                            </div>
+                            {% if form.is_featured.errors %}
+                                <div class="text-danger small">
+                                    {% for error in form.is_featured.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                            <div class="form-text">Bài viết nổi bật sẽ hiển thị ở vị trí đặc biệt trên trang chủ</div>
+                        </div>
+                        
+                        <!-- Submit Buttons -->
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary" name="action" value="save">
+                                <i class="fas fa-save me-2"></i>
+                                {{ 'Cập nhật' if article else 'Lưu bài viết' }}
+                            </button>
+                            
+                            {% if not article or not article.is_published %}
+                            <button type="submit" class="btn btn-success" name="action" value="publish">
+                                <i class="fas fa-upload me-2"></i>
+                                Lưu và xuất bản
+                            </button>
+                            {% endif %}
+                            
+                            <button type="submit" class="btn btn-outline-secondary" name="action" value="draft">
+                                <i class="fas fa-file me-2"></i>
+                                Lưu nháp
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Category -->
+                <div class="card mb-4 shadow-sm">
+                    <div class="card-header">
+                        <h6 class="mb-0">
+                            <i class="fas fa-folder me-2"></i>
+                            Danh mục
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        {{ form.category_id(class="form-select" + (" is-invalid" if form.category_id.errors else "")) }}
+                        {% if form.category_id.errors %}
+                            <div class="invalid-feedback">
+                                {% for error in form.category_id.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <!-- Tags -->
+                <div class="card mb-4 shadow-sm">
+                    <div class="card-header">
+                        <h6 class="mb-0">
+                            <i class="fas fa-tags me-2"></i>
+                            Tags
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        {{ form.tags(class="form-control", placeholder="Nhập tags, cách nhau bằng dấu phẩy...") }}
+                        {% if form.tags.errors %}
+                            <div class="text-danger small mt-1">
+                                {% for error in form.tags.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        <div class="form-text">Ví dụ: world cup, messi, real madrid</div>
+                        
+                        <!-- Tag suggestions -->
+                        <div class="mt-2">
+                            <small class="text-muted">Gợi ý:</small>
+                            <div class="mt-1">
+                                <span class="badge bg-light text-dark me-1 tag-suggestion" onclick="addTag('world cup')">world cup</span>
+                                <span class="badge bg-light text-dark me-1 tag-suggestion" onclick="addTag('premier league')">premier league</span>
+                                <span class="badge bg-light text-dark me-1 tag-suggestion" onclick="addTag('messi')">messi</span>
+                                <span class="badge bg-light text-dark me-1 tag-suggestion" onclick="addTag('real madrid')">real madrid</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- SEO -->
+                <div class="card mb-4 shadow-sm">
+                    <div class="card-header">
+                        <h6 class="mb-0">
+                            <i class="fas fa-search me-2"></i>
+                            SEO Preview
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="seo-preview p-3 border rounded bg-light">
+                            <div class="seo-title text-primary fw-bold mb-1" id="seo-title">{{ article.title if article else 'Tiêu đề bài viết' }}</div>
+                            <div class="seo-url text-success small mb-1" id="seo-url">sportnews.vn/article/{{ article.slug if article else 'tieu-de-bai-viet' }}</div>
+                            <div class="seo-description text-muted small" id="seo-description">
+                                {{ article.summary if article and article.summary else 'Tóm tắt bài viết sẽ hiển thị ở đây...' }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Article Stats (if editing) -->
+                {% if article %}
+                <div class="card mb-4 shadow-sm">
+                    <div class="card-header">
+                        <h6 class="mb-0">
+                            <i class="fas fa-chart-bar me-2"></i>
+                            Thống kê
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row text-center">
+                            <div class="col-6">
+                                <div class="fw-bold text-primary">{{ article.view_count }}</div>
+                                <small class="text-muted">Lượt xem</small>
+                            </div>
+                            <div class="col-6">
+                                <div class="fw-bold text-success">{{ article.comments.count() }}</div>
+                                <small class="text-muted">Bình luận</small>
+                            </div>
+                        </div>
+                        <hr>
+                        <div class="small text-muted">
+                            <div><strong>Tạo:</strong> {{ article.created_at|datetime }}</div>
+                            <div><strong>Cập nhật:</strong> {{ article.updated_at|datetime }}</div>
+                            {% if article.published_at %}
+                            <div><strong>Xuất bản:</strong> {{ article.published_at|datetime }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Initialize CKEditor
+let editor;
+
+ClassicEditor
+    .create(document.querySelector('#editor'), {
+        toolbar: {
+            items: [
+                'heading', '|',
+                'bold', 'italic', 'link', '|',
+                'bulletedList', 'numberedList', '|',
+                'outdent', 'indent', '|',
+                'imageUpload', 'blockQuote', 'insertTable', '|',
+                'undo', 'redo', '|',
+                'sourceEditing'
+            ]
+        },
+        language: 'vi',
+        image: {
+            toolbar: [
+                'imageTextAlternative',
+                'imageStyle:inline',
+                'imageStyle:block',
+                'imageStyle:side'
+            ]
+        },
+        table: {
+            contentToolbar: [
+                'tableColumn',
+                'tableRow',
+                'mergeTableCells'
+            ]
+        }
+    })
+    .then(editorInstance => {
+        editor = editorInstance;
+        
+        // Auto-save functionality
+        let autoSaveTimeout;
+        editor.model.document.on('change:data', () => {
+            clearTimeout(autoSaveTimeout);
+            autoSaveTimeout = setTimeout(() => {
+                console.log('Auto-saving...');
+                // Implement auto-save functionality here
+            }, 30000); // Auto-save every 30 seconds
+        });
+    })
+    .catch(error => {
+        console.error(error);
+    });
+
+// Character counters
+document.getElementById('title').addEventListener('input', function() {
+    document.getElementById('title-count').textContent = this.value.length;
+    updateSEOPreview();
+});
+
+document.getElementById('summary').addEventListener('input', function() {
+    document.getElementById('summary-count').textContent = this.value.length;
+    updateSEOPreview();
+});
+
+// Image preview
+document.getElementById('featured_image').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            document.getElementById('preview-img').src = e.target.result;
+            document.getElementById('image-preview').style.display = 'block';
+        };
+        reader.readAsDataURL(file);
+    }
+});
+
+// SEO Preview Update
+function updateSEOPreview() {
+    const title = document.getElementById('title').value || 'Tiêu đề bài viết';
+    const summary = document.getElementById('summary').value || 'Tóm tắt bài viết sẽ hiển thị ở đây...';
+    
+    document.getElementById('seo-title').textContent = title;
+    document.getElementById('seo-description').textContent = summary;
+    
+    // Update URL slug
+    const slug = title.toLowerCase()
+        .replace(/[^\w\s-]/g, '')
+        .replace(/\s+/g, '-')
+        .replace(/-+/g, '-');
+    document.getElementById('seo-url').textContent = `sportnews.vn/article/${slug}`;
+}
+
+// Add tag function
+function addTag(tagName) {
+    const tagsInput = document.getElementById('tags');
+    const currentTags = tagsInput.value.split(',').map(tag => tag.trim()).filter(tag => tag);
+    
+    if (!currentTags.includes(tagName)) {
+        currentTags.push(tagName);
+        tagsInput.value = currentTags.join(', ');
+    }
+}
+
+// Form submission handling
+document.getElementById('article-form').addEventListener('submit', function(e) {
+    // Update textarea with CKEditor content
+    if (editor) {
+        document.getElementById('content').value = editor.getData();
+    }
+    
+    // Show loading state
+    const submitButtons = this.querySelectorAll('button[type="submit"]');
+    submitButtons.forEach(btn => {
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Đang lưu...';
+    });
+});
+
+// Auto-save draft functionality
+function autoSaveDraft() {
+    if (editor) {
+        const formData = new FormData(document.getElementById('article-form'));
+        formData.set('content', editor.getData());
+        formData.set('action', 'auto_save');
+        
+        // In a real application, you would send this to the server
+        console.log('Auto-saving draft...');
+    }
+}
+
+// Auto-save every 5 minutes
+setInterval(autoSaveDraft, 5 * 60 * 1000);
+
+// Remove image function
+function removeImage() {
+    if (confirm('Bạn có chắc chắn muốn xóa ảnh này?')) {
+        document.querySelector('.current-image').style.display = 'none';
+        // In a real application, you would mark the image for deletion
+    }
+}
+
+// Initialize character counters
+document.addEventListener('DOMContentLoaded', function() {
+    const titleInput = document.getElementById('title');
+    const summaryInput = document.getElementById('summary');
+    
+    if (titleInput.value) {
+        document.getElementById('title-count').textContent = titleInput.value.length;
+    }
+    
+    if (summaryInput.value) {
+        document.getElementById('summary-count').textContent = summaryInput.value.length;
+    }
+    
+    updateSEOPreview();
+});
+
+// Keyboard shortcuts
+document.addEventListener('keydown', function(e) {
+    // Ctrl+S to save
+    if (e.ctrlKey && e.key === 's') {
+        e.preventDefault();
+        document.querySelector('button[name="action"][value="save"]').click();
+    }
+    
+    // Ctrl+Shift+P to publish
+    if (e.ctrlKey && e.shiftKey && e.key === 'P') {
+        e.preventDefault();
+        const publishBtn = document.querySelector('button[name="action"][value="publish"]');
+        if (publishBtn) publishBtn.click();
+    }
+});
+</script>
+{% endblock %}

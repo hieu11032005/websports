@@ -1,0 +1,332 @@
+{% extends "base.html" %}
+
+{% block title %}Hồ sơ cá nhân - {{ current_user.full_name or current_user.username }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <!-- Profile Sidebar -->
+        <div class="col-lg-4">
+            <div class="card shadow-sm">
+                <div class="card-body text-center">
+                    <!-- Avatar -->
+                    <div class="mb-3">
+                        {% if current_user.avatar_url %}
+                        <img src="{{ url_for('static', filename='uploads/avatars/' + current_user.avatar_url) }}" 
+                             alt="Avatar" class="rounded-circle" width="120" height="120" style="object-fit: cover;">
+                        {% else %}
+                        <div class="bg-primary rounded-circle d-inline-flex align-items-center justify-content-center" 
+                             style="width: 120px; height: 120px;">
+                            <i class="fas fa-user fa-3x text-white"></i>
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- User Info -->
+                    <h5 class="mb-1">{{ current_user.full_name or current_user.username }}</h5>
+                    <p class="text-muted mb-2">@{{ current_user.username }}</p>
+                    <p class="text-muted small">
+                        <i class="fas fa-envelope me-2"></i>{{ current_user.email }}
+                    </p>
+                    
+                    {% if current_user.bio %}
+                    <div class="border-top pt-3 mt-3">
+                        <h6 class="text-muted">Giới thiệu</h6>
+                        <p class="small">{{ current_user.bio }}</p>
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Stats -->
+                    <div class="row text-center border-top pt-3 mt-3">
+                        <div class="col-4">
+                            <div class="fw-bold text-primary">{{ current_user.articles.count() }}</div>
+                            <small class="text-muted">Bài viết</small>
+                        </div>
+                        <div class="col-4">
+                            <div class="fw-bold text-success">{{ current_user.comments.count() }}</div>
+                            <small class="text-muted">Bình luận</small>
+                        </div>
+                        <div class="col-4">
+                            <div class="fw-bold text-info">{{ current_user.created_at|datetime('%d/%m/%Y') }}</div>
+                            <small class="text-muted">Tham gia</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Quick Actions -->
+            <div class="card mt-4 shadow-sm">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="fas fa-cogs me-2"></i>
+                        Hành động nhanh
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        {% if current_user.is_author or current_user.is_admin %}
+                        <a href="{{ url_for('admin.article_form') }}" class="btn btn-outline-primary btn-sm">
+                            <i class="fas fa-plus me-2"></i>Viết bài mới
+                        </a>
+                        {% endif %}
+                        
+                        {% if current_user.is_admin %}
+                        <a href="{{ url_for('admin.dashboard') }}" class="btn btn-outline-success btn-sm">
+                            <i class="fas fa-tachometer-alt me-2"></i>Dashboard Admin
+                        </a>
+                        {% endif %}
+                        
+                        <button type="button" class="btn btn-outline-danger btn-sm" data-bs-toggle="modal" data-bs-target="#changePasswordModal">
+                            <i class="fas fa-key me-2"></i>Đổi mật khẩu
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Profile Content -->
+        <div class="col-lg-8">
+            <!-- Profile Edit Form -->
+            <div class="card shadow-sm">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-edit me-2"></i>
+                        Chỉnh sửa hồ sơ
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" enctype="multipart/form-data">
+                        {{ form.hidden_tag() }}
+                        
+                        <div class="row">
+                            <!-- Username -->
+                            <div class="col-md-6 mb-3">
+                                {{ form.username.label(class="form-label") }}
+                                {{ form.username(class="form-control" + (" is-invalid" if form.username.errors else "")) }}
+                                {% if form.username.errors %}
+                                    <div class="invalid-feedback">
+                                        {% for error in form.username.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            <!-- Email -->
+                            <div class="col-md-6 mb-3">
+                                {{ form.email.label(class="form-label") }}
+                                {{ form.email(class="form-control" + (" is-invalid" if form.email.errors else "")) }}
+                                {% if form.email.errors %}
+                                    <div class="invalid-feedback">
+                                        {% for error in form.email.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <!-- Full Name -->
+                        <div class="mb-3">
+                            {{ form.full_name.label(class="form-label") }}
+                            {{ form.full_name(class="form-control" + (" is-invalid" if form.full_name.errors else "")) }}
+                            {% if form.full_name.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in form.full_name.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Bio -->
+                        <div class="mb-3">
+                            {{ form.bio.label(class="form-label") }}
+                            {{ form.bio(class="form-control", rows="3", placeholder="Viết vài dòng về bản thân...") }}
+                            {% if form.bio.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in form.bio.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Avatar Upload -->
+                        <div class="mb-3">
+                            {{ form.avatar.label(class="form-label") }}
+                            {{ form.avatar(class="form-control") }}
+                            {% if form.avatar.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.avatar.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                            <div class="form-text">Định dạng: JPG, PNG, GIF. Kích thước tối đa: 5MB</div>
+                        </div>
+                        
+                        <!-- Submit Button -->
+                        <div class="d-flex justify-content-between">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-2"></i>
+                                Lưu thay đổi
+                            </button>
+                            <a href="{{ url_for('main.index') }}" class="btn btn-outline-secondary">
+                                <i class="fas fa-times me-2"></i>
+                                Hủy
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- Recent Activity -->
+            {% if current_user.articles.count() > 0 or current_user.comments.count() > 0 %}
+            <div class="card mt-4 shadow-sm">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="fas fa-history me-2"></i>
+                        Hoạt động gần đây
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <!-- Recent Articles -->
+                    {% set recent_articles = current_user.articles.order_by(current_user.articles.model.created_at.desc()).limit(3) %}
+                    {% if recent_articles.count() > 0 %}
+                    <h6 class="text-muted mb-3">Bài viết gần đây</h6>
+                    {% for article in recent_articles %}
+                    <div class="d-flex align-items-center mb-3 p-2 border rounded">
+                        {% if article.featured_image %}
+                        <img src="{{ url_for('static', filename='uploads/articles/' + article.featured_image) }}" 
+                             alt="{{ article.title }}" class="rounded me-3" width="60" height="60" style="object-fit: cover;">
+                        {% else %}
+                        <div class="bg-light rounded me-3 d-flex align-items-center justify-content-center" 
+                             style="width: 60px; height: 60px;">
+                            <i class="fas fa-newspaper text-muted"></i>
+                        </div>
+                        {% endif %}
+                        
+                        <div class="flex-grow-1">
+                            <h6 class="mb-1">
+                                <a href="{{ url_for('main.article_detail', slug=article.slug) }}" 
+                                   class="text-decoration-none">
+                                    {{ article.title|truncate(50) }}
+                                </a>
+                            </h6>
+                            <small class="text-muted">
+                                {{ article.created_at|timeago }} • 
+                                {{ article.view_count }} lượt xem
+                            </small>
+                        </div>
+                        
+                        <div class="text-end">
+                            <span class="badge bg-{{ 'success' if article.is_published else 'warning' }}">
+                                {{ 'Đã xuất bản' if article.is_published else 'Nháp' }}
+                            </span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                    {% endif %}
+                    
+                    <!-- Recent Comments -->
+                    {% set recent_comments = current_user.comments.order_by(current_user.comments.model.created_at.desc()).limit(3) %}
+                    {% if recent_comments.count() > 0 %}
+                    <h6 class="text-muted mb-3 mt-4">Bình luận gần đây</h6>
+                    {% for comment in recent_comments %}
+                    <div class="border-start border-primary border-3 ps-3 mb-3">
+                        <p class="mb-1">{{ comment.content|truncate(100) }}</p>
+                        <small class="text-muted">
+                            Trên bài viết: 
+                            <a href="{{ url_for('main.article_detail', slug=comment.article.slug) }}" 
+                               class="text-decoration-none">
+                                {{ comment.article.title|truncate(40) }}
+                            </a>
+                            • {{ comment.created_at|timeago }}
+                        </small>
+                    </div>
+                    {% endfor %}
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Change Password Modal -->
+<div class="modal fade" id="changePasswordModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Đổi mật khẩu</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="changePasswordForm">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="currentPassword" class="form-label">Mật khẩu hiện tại</label>
+                        <input type="password" class="form-control" id="currentPassword" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="newPassword" class="form-label">Mật khẩu mới</label>
+                        <input type="password" class="form-control" id="newPassword" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="confirmNewPassword" class="form-label">Xác nhận mật khẩu mới</label>
+                        <input type="password" class="form-control" id="confirmNewPassword" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-primary">Đổi mật khẩu</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Change password form handler
+document.getElementById('changePasswordForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const currentPassword = document.getElementById('currentPassword').value;
+    const newPassword = document.getElementById('newPassword').value;
+    const confirmNewPassword = document.getElementById('confirmNewPassword').value;
+    
+    if (newPassword !== confirmNewPassword) {
+        alert('Mật khẩu mới không khớp!');
+        return;
+    }
+    
+    if (newPassword.length < 6) {
+        alert('Mật khẩu mới phải có ít nhất 6 ký tự!');
+        return;
+    }
+    
+    // In a real application, this would be an API call
+    alert('Tính năng đổi mật khẩu sẽ được triển khai trong phiên bản tiếp theo.');
+    
+    // Close modal and reset form
+    const modal = bootstrap.Modal.getInstance(document.getElementById('changePasswordModal'));
+    modal.hide();
+    this.reset();
+});
+
+// Avatar preview
+document.querySelector('input[type="file"]').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            // In a real application, you would show a preview here
+            console.log('File selected:', file.name);
+        };
+        reader.readAsDataURL(file);
+    }
+});
+</script>
+{% endblock %}

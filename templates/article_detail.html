@@ -1,0 +1,447 @@
+{% extends "base.html" %}
+
+{% block title %}{{ article.title }} - Tin Tức Thể Thao{% endblock %}
+{% block description %}{{ article.summary or (article.content|truncate_html(160)) }}{% endblock %}
+{% block og_title %}{{ article.title }}{% endblock %}
+{% block og_description %}{{ article.summary or (article.content|truncate_html(160)) }}{% endblock %}
+{% block og_image %}{% if article.featured_image %}{{ url_for('static', filename='uploads/articles/' + article.featured_image, _external=True) }}{% else %}{{ super() }}{% endif %}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <!-- Main Article Content -->
+        <div class="col-lg-8">
+            <article class="article-detail">
+                <!-- Breadcrumb -->
+                <nav aria-label="breadcrumb" class="mb-3">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="{{ url_for('main.index') }}">Trang chủ</a></li>
+                        <li class="breadcrumb-item">
+                            <a href="{{ url_for('main.category', slug=article.category.slug) }}">
+                                {{ article.category.name }}
+                            </a>
+                        </li>
+                        <li class="breadcrumb-item active" aria-current="page">{{ article.title|truncate(30) }}</li>
+                    </ol>
+                </nav>
+                
+                <!-- Article Header -->
+                <header class="article-header mb-4">
+                    <!-- Category Badge -->
+                    <div class="mb-2">
+                        <span class="badge bg-primary fs-6">
+                            {% if article.category.icon %}
+                            <i class="{{ article.category.icon }} me-2"></i>
+                            {% endif %}
+                            {{ article.category.name }}
+                        </span>
+                        {% if article.is_featured %}
+                        <span class="badge bg-warning text-dark ms-2">
+                            <i class="fas fa-star me-1"></i>Nổi bật
+                        </span>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Title -->
+                    <h1 class="article-title display-5 fw-bold mb-3">{{ article.title }}</h1>
+                    
+                    <!-- Summary -->
+                    {% if article.summary %}
+                    <p class="article-summary lead text-muted mb-4">{{ article.summary }}</p>
+                    {% endif %}
+                    
+                    <!-- Meta Information -->
+                    <div class="article-meta d-flex flex-wrap align-items-center text-muted mb-4">
+                        <div class="author-info d-flex align-items-center me-4 mb-2">
+                            {% if article.author.avatar_url %}
+                            <img src="{{ url_for('static', filename='uploads/avatars/' + article.author.avatar_url) }}" 
+                                 alt="{{ article.author.full_name or article.author.username }}" 
+                                 class="rounded-circle me-2" width="40" height="40" style="object-fit: cover;">
+                            {% else %}
+                            <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center me-2" 
+                                 style="width: 40px; height: 40px;">
+                                <i class="fas fa-user text-white"></i>
+                            </div>
+                            {% endif %}
+                            <div>
+                                <div class="fw-semibold">{{ article.author.full_name or article.author.username }}</div>
+                                <small>{{ article.published_at|datetime('%d/%m/%Y %H:%M') }}</small>
+                            </div>
+                        </div>
+                        
+                        <div class="article-stats d-flex align-items-center">
+                            <span class="me-3">
+                                <i class="fas fa-eye me-1"></i>
+                                {{ article.view_count }} lượt xem
+                            </span>
+                            <span class="me-3">
+                                <i class="fas fa-comments me-1"></i>
+                                {{ comments|length }} bình luận
+                            </span>
+                            <span>
+                                <i class="fas fa-clock me-1"></i>
+                                {{ article.published_at|timeago }}
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <!-- Social Share -->
+                    <div class="social-share d-flex align-items-center mb-4">
+                        <span class="me-3 fw-semibold">Chia sẻ:</span>
+                        <a href="https://www.facebook.com/sharer/sharer.php?u={{ request.url }}" 
+                           target="_blank" class="btn btn-outline-primary btn-sm me-2">
+                            <i class="fab fa-facebook-f"></i> Facebook
+                        </a>
+                        <a href="https://twitter.com/intent/tweet?url={{ request.url }}&text={{ article.title }}" 
+                           target="_blank" class="btn btn-outline-info btn-sm me-2">
+                            <i class="fab fa-twitter"></i> Twitter
+                        </a>
+                        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="copyToClipboard()">
+                            <i class="fas fa-link"></i> Sao chép link
+                        </button>
+                    </div>
+                </header>
+                
+                <!-- Featured Image -->
+                {% if article.featured_image %}
+                <div class="article-image mb-4">
+                    <img src="{{ url_for('static', filename='uploads/articles/' + article.featured_image) }}" 
+                         alt="{{ article.title }}" class="img-fluid rounded shadow-sm">
+                </div>
+                {% endif %}
+                
+                <!-- Article Content -->
+                <div class="article-content">
+                    {{ article.content|safe }}
+                </div>
+                
+                <!-- Tags -->
+                {% if article.tags %}
+                <div class="article-tags mt-4 pt-4 border-top">
+                    <h6 class="mb-3">
+                        <i class="fas fa-tags me-2"></i>
+                        Từ khóa:
+                    </h6>
+                    {% for tag in article.tags %}
+                    <a href="{{ url_for('main.search', query=tag.name) }}" 
+                       class="badge bg-light text-dark text-decoration-none me-2 mb-2">
+                        #{{ tag.name }}
+                    </a>
+                    {% endfor %}
+                </div>
+                {% endif %}
+                
+                <!-- Author Bio -->
+                <div class="author-bio mt-5 p-4 bg-light rounded">
+                    <div class="row align-items-center">
+                        <div class="col-auto">
+                            {% if article.author.avatar_url %}
+                            <img src="{{ url_for('static', filename='uploads/avatars/' + article.author.avatar_url) }}" 
+                                 alt="{{ article.author.full_name or article.author.username }}" 
+                                 class="rounded-circle" width="80" height="80" style="object-fit: cover;">
+                            {% else %}
+                            <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center" 
+                                 style="width: 80px; height: 80px;">
+                                <i class="fas fa-user fa-2x text-white"></i>
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div class="col">
+                            <h5 class="mb-1">{{ article.author.full_name or article.author.username }}</h5>
+                            {% if article.author.bio %}
+                            <p class="text-muted mb-2">{{ article.author.bio }}</p>
+                            {% else %}
+                            <p class="text-muted mb-2">Tác giả tại SportNews</p>
+                            {% endif %}
+                            <small class="text-muted">
+                                Đã viết {{ article.author.articles.count() }} bài viết • 
+                                Tham gia từ {{ article.author.created_at|datetime('%m/%Y') }}
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </article>
+            
+            <!-- Comments Section -->
+            <section class="comments-section mt-5">
+                <h4 class="mb-4">
+                    <i class="fas fa-comments me-2"></i>
+                    Bình luận ({{ comments|length }})
+                </h4>
+                
+                <!-- Comment Form -->
+                {% if current_user.is_authenticated %}
+                <div class="comment-form mb-4">
+                    <form method="POST" action="{{ url_for('main.add_comment', article_id=article.id) }}">
+                        {{ comment_form.hidden_tag() }}
+                        <div class="d-flex">
+                            {% if current_user.avatar_url %}
+                            <img src="{{ url_for('static', filename='uploads/avatars/' + current_user.avatar_url) }}" 
+                                 alt="{{ current_user.full_name or current_user.username }}" 
+                                 class="rounded-circle me-3" width="40" height="40" style="object-fit: cover;">
+                            {% else %}
+                            <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center me-3" 
+                                 style="width: 40px; height: 40px; min-width: 40px;">
+                                <i class="fas fa-user text-white"></i>
+                            </div>
+                            {% endif %}
+                            <div class="flex-grow-1">
+                                {{ comment_form.content(class="form-control", placeholder="Viết bình luận của bạn...", rows="3") }}
+                                {% if comment_form.content.errors %}
+                                    <div class="text-danger small mt-1">
+                                        {% for error in comment_form.content.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                                <div class="d-flex justify-content-between align-items-center mt-2">
+                                    <small class="text-muted">Hãy viết bình luận tích cực và xây dựng</small>
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-paper-plane me-1"></i>
+                                        Gửi bình luận
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                {% else %}
+                <div class="comment-login-prompt text-center p-4 bg-light rounded mb-4">
+                    <p class="mb-3">
+                        <i class="fas fa-comment-slash fa-2x text-muted"></i>
+                    </p>
+                    <h6>Bạn cần đăng nhập để bình luận</h6>
+                    <p class="text-muted mb-3">Hãy đăng nhập hoặc tạo tài khoản để tham gia thảo luận</p>
+                    <a href="{{ url_for('auth.login', next=request.url) }}" class="btn btn-primary me-2">Đăng nhập</a>
+                    <a href="{{ url_for('auth.register') }}" class="btn btn-outline-primary">Đăng ký</a>
+                </div>
+                {% endif %}
+                
+                <!-- Comments List -->
+                {% if comments %}
+                <div class="comments-list">
+                    {% for comment in comments %}
+                    <div class="comment-item border-bottom pb-3 mb-3">
+                        <div class="d-flex">
+                            {% if comment.author.avatar_url %}
+                            <img src="{{ url_for('static', filename='uploads/avatars/' + comment.author.avatar_url) }}" 
+                                 alt="{{ comment.author.full_name or comment.author.username }}" 
+                                 class="rounded-circle me-3" width="40" height="40" style="object-fit: cover;">
+                            {% else %}
+                            <div class="bg-secondary rounded-circle d-flex align-items-center justify-content-center me-3" 
+                                 style="width: 40px; height: 40px; min-width: 40px;">
+                                <i class="fas fa-user text-white"></i>
+                            </div>
+                            {% endif %}
+                            <div class="flex-grow-1">
+                                <div class="comment-header d-flex align-items-center mb-2">
+                                    <h6 class="mb-0 me-2">{{ comment.author.full_name or comment.author.username }}</h6>
+                                    <small class="text-muted">{{ comment.created_at|timeago }}</small>
+                                </div>
+                                <div class="comment-content">
+                                    <p class="mb-0">{{ comment.content }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="no-comments text-center p-4">
+                    <i class="fas fa-comments fa-3x text-muted mb-3"></i>
+                    <h6>Chưa có bình luận nào</h6>
+                    <p class="text-muted">Hãy là người đầu tiên bình luận về bài viết này!</p>
+                </div>
+                {% endif %}
+            </section>
+        </div>
+        
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <!-- Related Articles -->
+            {% if related_articles %}
+            <div class="card mb-4 shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h6 class="mb-0">
+                        <i class="fas fa-newspaper me-2"></i>
+                        Bài viết liên quan
+                    </h6>
+                </div>
+                <div class="card-body p-0">
+                    {% for related in related_articles %}
+                    <div class="border-bottom p-3 {% if loop.last %}border-0{% endif %}">
+                        <div class="row align-items-center">
+                            {% if related.featured_image %}
+                            <div class="col-4">
+                                <img src="{{ url_for('static', filename='uploads/articles/' + related.featured_image) }}" 
+                                     alt="{{ related.title }}" class="img-fluid rounded" 
+                                     style="height: 60px; object-fit: cover;">
+                            </div>
+                            <div class="col-8">
+                            {% else %}
+                            <div class="col-12">
+                            {% endif %}
+                                <h6 class="mb-1">
+                                    <a href="{{ url_for('main.article_detail', slug=related.slug) }}" 
+                                       class="text-decoration-none text-dark">
+                                        {{ related.title|truncate(60) }}
+                                    </a>
+                                </h6>
+                                <small class="text-muted">
+                                    <i class="fas fa-clock me-1"></i>{{ related.published_at|timeago }}
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+            
+            <!-- Popular Articles -->
+            {% if popular_articles %}
+            <div class="card mb-4 shadow-sm">
+                <div class="card-header bg-success text-white">
+                    <h6 class="mb-0">
+                        <i class="fas fa-fire me-2"></i>
+                        Bài viết phổ biến
+                    </h6>
+                </div>
+                <div class="card-body p-0">
+                    {% for popular in popular_articles %}
+                    <div class="border-bottom p-3 {% if loop.last %}border-0{% endif %}">
+                        <div class="d-flex align-items-center">
+                            <div class="badge bg-warning text-dark me-2">{{ loop.index }}</div>
+                            <div class="flex-grow-1">
+                                <h6 class="mb-1">
+                                    <a href="{{ url_for('main.article_detail', slug=popular.slug) }}" 
+                                       class="text-decoration-none text-dark">
+                                        {{ popular.title|truncate(50) }}
+                                    </a>
+                                </h6>
+                                <small class="text-muted">
+                                    <i class="fas fa-eye me-1"></i>{{ popular.view_count }} lượt xem
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+            
+            <!-- Table of Contents (if article is long) -->
+            <div class="card mb-4 shadow-sm d-none" id="toc-card">
+                <div class="card-header bg-info text-white">
+                    <h6 class="mb-0">
+                        <i class="fas fa-list me-2"></i>
+                        Mục lục
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <ul class="list-unstyled" id="toc-list">
+                        <!-- Generated by JavaScript -->
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Back to Top Button -->
+<button type="button" class="btn btn-primary btn-floating btn-lg" id="back-to-top">
+    <i class="fas fa-arrow-up"></i>
+</button>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Copy to clipboard function
+function copyToClipboard() {
+    navigator.clipboard.writeText(window.location.href).then(function() {
+        alert('Đã sao chép link bài viết!');
+    }, function(err) {
+        console.error('Không thể sao chép: ', err);
+    });
+}
+
+// Back to top functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const backToTopBtn = document.getElementById('back-to-top');
+    
+    window.addEventListener('scroll', function() {
+        if (window.pageYOffset > 300) {
+            backToTopBtn.style.display = 'block';
+        } else {
+            backToTopBtn.style.display = 'none';
+        }
+    });
+    
+    backToTopBtn.addEventListener('click', function() {
+        window.scrollTo({
+            top: 0,
+            behavior: 'smooth'
+        });
+    });
+    
+    // Generate table of contents
+    generateTableOfContents();
+});
+
+// Generate table of contents from headings
+function generateTableOfContents() {
+    const content = document.querySelector('.article-content');
+    const headings = content.querySelectorAll('h1, h2, h3, h4, h5, h6');
+    
+    if (headings.length > 2) {
+        const tocCard = document.getElementById('toc-card');
+        const tocList = document.getElementById('toc-list');
+        
+        tocCard.classList.remove('d-none');
+        
+        headings.forEach((heading, index) => {
+            const id = 'heading-' + index;
+            heading.id = id;
+            
+            const li = document.createElement('li');
+            li.className = 'mb-1';
+            
+            const a = document.createElement('a');
+            a.href = '#' + id;
+            a.className = 'text-decoration-none';
+            a.textContent = heading.textContent;
+            a.style.fontSize = '0.9em';
+            
+            // Add indentation based on heading level
+            const level = parseInt(heading.tagName.charAt(1));
+            a.style.paddingLeft = (level - 1) * 15 + 'px';
+            
+            li.appendChild(a);
+            tocList.appendChild(li);
+        });
+    }
+}
+
+// Smooth scrolling for anchor links
+document.addEventListener('click', function(e) {
+    if (e.target.tagName === 'A' && e.target.getAttribute('href').startsWith('#')) {
+        e.preventDefault();
+        const target = document.querySelector(e.target.getAttribute('href'));
+        if (target) {
+            target.scrollIntoView({
+                behavior: 'smooth',
+                block: 'start'
+            });
+        }
+    }
+});
+
+// Social share tracking (optional)
+document.querySelectorAll('.social-share a').forEach(link => {
+    link.addEventListener('click', function() {
+        // Track social shares if analytics is implemented
+        console.log('Social share:', this.textContent.trim());
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,327 @@
+{% extends "base.html" %}
+
+{% block title %}Đăng ký tài khoản - Tin Tức Thể Thao{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card shadow-lg mt-5">
+                <div class="card-header bg-success text-white text-center">
+                    <h4 class="mb-0">
+                        <i class="fas fa-user-plus me-2"></i>
+                        Đăng ký tài khoản
+                    </h4>
+                    <p class="mb-0 mt-2 small">Tạo tài khoản để theo dõi tin tức thể thao</p>
+                </div>
+                
+                <div class="card-body p-4">
+                    <form method="POST" id="register-form">
+                        {{ form.hidden_tag() }}
+                        
+                        <div class="row">
+                            <!-- Username Field -->
+                            <div class="col-md-6 mb-3">
+                                {{ form.username.label(class="form-label") }}
+                                {{ form.username(class="form-control" + (" is-invalid" if form.username.errors else "")) }}
+                                {% if form.username.errors %}
+                                    <div class="invalid-feedback">
+                                        {% for error in form.username.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                                <div class="form-text">3-80 ký tự, chỉ gồm chữ cái, số và dấu gạch dưới</div>
+                            </div>
+                            
+                            <!-- Email Field -->
+                            <div class="col-md-6 mb-3">
+                                {{ form.email.label(class="form-label") }}
+                                {{ form.email(class="form-control" + (" is-invalid" if form.email.errors else "")) }}
+                                {% if form.email.errors %}
+                                    <div class="invalid-feedback">
+                                        {% for error in form.email.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <!-- Full Name Field -->
+                        <div class="mb-3">
+                            {{ form.full_name.label(class="form-label") }}
+                            {{ form.full_name(class="form-control" + (" is-invalid" if form.full_name.errors else "")) }}
+                            {% if form.full_name.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in form.full_name.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="row">
+                            <!-- Password Field -->
+                            <div class="col-md-6 mb-3">
+                                {{ form.password.label(class="form-label") }}
+                                <div class="input-group">
+                                    {{ form.password(class="form-control" + (" is-invalid" if form.password.errors else ""), id="password") }}
+                                    <button class="btn btn-outline-secondary" type="button" id="toggle-password">
+                                        <i class="fas fa-eye" id="toggle-icon"></i>
+                                    </button>
+                                </div>
+                                {% if form.password.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in form.password.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                                <div class="form-text">Ít nhất 6 ký tự</div>
+                                
+                                <!-- Password Strength Indicator -->
+                                <div class="password-strength mt-2">
+                                    <div class="progress" style="height: 5px;">
+                                        <div class="progress-bar" id="password-strength-bar" 
+                                             role="progressbar" style="width: 0%"></div>
+                                    </div>
+                                    <small id="password-strength-text" class="text-muted"></small>
+                                </div>
+                            </div>
+                            
+                            <!-- Confirm Password Field -->
+                            <div class="col-md-6 mb-3">
+                                {{ form.confirm_password.label(class="form-label") }}
+                                <div class="input-group">
+                                    {{ form.confirm_password(class="form-control" + (" is-invalid" if form.confirm_password.errors else ""), id="confirm_password") }}
+                                    <button class="btn btn-outline-secondary" type="button" id="toggle-confirm-password">
+                                        <i class="fas fa-eye" id="toggle-confirm-icon"></i>
+                                    </button>
+                                </div>
+                                {% if form.confirm_password.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in form.confirm_password.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                                
+                                <!-- Password Match Indicator -->
+                                <div id="password-match" class="form-text"></div>
+                            </div>
+                        </div>
+                        
+                        <!-- Terms and Conditions -->
+                        <div class="mb-3 form-check">
+                            <input type="checkbox" class="form-check-input" id="terms" required>
+                            <label class="form-check-label" for="terms">
+                                Tôi đồng ý với 
+                                <a href="#" class="text-decoration-none" data-bs-toggle="modal" data-bs-target="#termsModal">
+                                    Điều khoản sử dụng
+                                </a> 
+                                và 
+                                <a href="#" class="text-decoration-none" data-bs-toggle="modal" data-bs-target="#privacyModal">
+                                    Chính sách bảo mật
+                                </a>
+                            </label>
+                        </div>
+                        
+                        <!-- Submit Button -->
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-success btn-lg" id="submit-btn">
+                                <i class="fas fa-user-plus me-2"></i>
+                                Tạo tài khoản
+                            </button>
+                        </div>
+                    </form>
+                    
+                    <!-- Additional Links -->
+                    <div class="text-center mt-4">
+                        <hr>
+                        <p class="mb-0">
+                            Đã có tài khoản? 
+                            <a href="{{ url_for('auth.login') }}" class="text-decoration-none">
+                                <strong>Đăng nhập ngay</strong>
+                            </a>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Terms Modal -->
+<div class="modal fade" id="termsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Điều khoản sử dụng</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <h6>1. Chấp nhận điều khoản</h6>
+                <p>Bằng việc sử dụng website SportNews, bạn đồng ý tuân thủ các điều khoản sau...</p>
+                
+                <h6>2. Quyền và trách nhiệm của người dùng</h6>
+                <p>Người dùng có trách nhiệm cung cấp thông tin chính xác và không sử dụng website cho mục đích bất hợp pháp...</p>
+                
+                <h6>3. Nội dung và bản quyền</h6>
+                <p>Tất cả nội dung trên website được bảo vệ bởi luật bản quyền...</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Privacy Modal -->
+<div class="modal fade" id="privacyModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Chính sách bảo mật</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <h6>1. Thu thập thông tin</h6>
+                <p>Chúng tôi thu thập thông tin cần thiết để cung cấp dịch vụ tốt nhất...</p>
+                
+                <h6>2. Sử dụng thông tin</h6>
+                <p>Thông tin được sử dụng để cải thiện trải nghiệm người dùng...</p>
+                
+                <h6>3. Bảo mật thông tin</h6>
+                <p>Chúng tôi cam kết bảo mật thông tin cá nhân của bạn...</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Toggle password visibility
+document.getElementById('toggle-password').addEventListener('click', function() {
+    const passwordField = document.getElementById('password');
+    const toggleIcon = document.getElementById('toggle-icon');
+    
+    if (passwordField.type === 'password') {
+        passwordField.type = 'text';
+        toggleIcon.className = 'fas fa-eye-slash';
+    } else {
+        passwordField.type = 'password';
+        toggleIcon.className = 'fas fa-eye';
+    }
+});
+
+document.getElementById('toggle-confirm-password').addEventListener('click', function() {
+    const confirmPasswordField = document.getElementById('confirm_password');
+    const toggleIcon = document.getElementById('toggle-confirm-icon');
+    
+    if (confirmPasswordField.type === 'password') {
+        confirmPasswordField.type = 'text';
+        toggleIcon.className = 'fas fa-eye-slash';
+    } else {
+        confirmPasswordField.type = 'password';
+        toggleIcon.className = 'fas fa-eye';
+    }
+});
+
+// Password strength checker
+document.getElementById('password').addEventListener('input', function() {
+    const password = this.value;
+    const strengthBar = document.getElementById('password-strength-bar');
+    const strengthText = document.getElementById('password-strength-text');
+    
+    let strength = 0;
+    let text = '';
+    let color = '';
+    
+    if (password.length >= 6) strength += 1;
+    if (password.match(/[a-z]/)) strength += 1;
+    if (password.match(/[A-Z]/)) strength += 1;
+    if (password.match(/[0-9]/)) strength += 1;
+    if (password.match(/[^a-zA-Z0-9]/)) strength += 1;
+    
+    switch (strength) {
+        case 0:
+        case 1:
+            text = 'Rất yếu';
+            color = 'bg-danger';
+            break;
+        case 2:
+            text = 'Yếu';
+            color = 'bg-warning';
+            break;
+        case 3:
+            text = 'Trung bình';
+            color = 'bg-info';
+            break;
+        case 4:
+            text = 'Mạnh';
+            color = 'bg-success';
+            break;
+        case 5:
+            text = 'Rất mạnh';
+            color = 'bg-success';
+            break;
+    }
+    
+    strengthBar.style.width = (strength * 20) + '%';
+    strengthBar.className = 'progress-bar ' + color;
+    strengthText.textContent = text;
+});
+
+// Password match checker
+document.getElementById('confirm_password').addEventListener('input', function() {
+    const password = document.getElementById('password').value;
+    const confirmPassword = this.value;
+    const matchDiv = document.getElementById('password-match');
+    
+    if (confirmPassword === '') {
+        matchDiv.textContent = '';
+        matchDiv.className = 'form-text';
+    } else if (password === confirmPassword) {
+        matchDiv.textContent = '✓ Mật khẩu khớp';
+        matchDiv.className = 'form-text text-success';
+    } else {
+        matchDiv.textContent = '✗ Mật khẩu không khớp';
+        matchDiv.className = 'form-text text-danger';
+    }
+});
+
+// Form validation
+document.getElementById('register-form').addEventListener('submit', function(e) {
+    const password = document.getElementById('password').value;
+    const confirmPassword = document.getElementById('confirm_password').value;
+    const terms = document.getElementById('terms').checked;
+    
+    if (password !== confirmPassword) {
+        e.preventDefault();
+        alert('Mật khẩu xác nhận không khớp!');
+        return false;
+    }
+    
+    if (!terms) {
+        e.preventDefault();
+        alert('Vui lòng đồng ý với điều khoản sử dụng!');
+        return false;
+    }
+    
+    // Show loading state
+    const submitBtn = document.getElementById('submit-btn');
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Đang tạo tài khoản...';
+});
+
+// Auto-focus on username field
+document.addEventListener('DOMContentLoaded', function() {
+    document.getElementById('username').focus();
+});
+</script>
+{% endblock %}

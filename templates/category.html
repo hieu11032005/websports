@@ -1,0 +1,390 @@
+{% extends "base.html" %}
+
+{% block title %}{{ category.name }} - Tin Tức Thể Thao{% endblock %}
+{% block description %}Tin tức {{ category.name }} mới nhất. {{ category.description or 'Cập nhật thông tin ' + category.name + ' liên tục 24/7.' }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <!-- Category Header -->
+    <div class="category-header mb-5">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <div class="d-flex align-items-center mb-3">
+                    {% if category.icon %}
+                    <div class="category-icon me-3" style="color: {{ category.color }}">
+                        <i class="{{ category.icon }} fa-3x"></i>
+                    </div>
+                    {% endif %}
+                    <div>
+                        <h1 class="display-4 fw-bold mb-2" style="color: {{ category.color }}">
+                            {{ category.name }}
+                        </h1>
+                        {% if category.description %}
+                        <p class="lead text-muted mb-0">{{ category.description }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <!-- Breadcrumb -->
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="{{ url_for('main.index') }}">Trang chủ</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">{{ category.name }}</li>
+                    </ol>
+                </nav>
+            </div>
+            
+            <div class="col-md-4 text-md-end">
+                <div class="category-stats">
+                    <div class="stat-item mb-2">
+                        <span class="h4 fw-bold text-primary">{{ articles.total }}</span>
+                        <div class="text-muted">Bài viết</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Filter and Sort Options -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="d-flex align-items-center">
+                <h5 class="me-3 mb-0">
+                    <i class="fas fa-newspaper me-2"></i>
+                    Tin tức {{ category.name }}
+                </h5>
+                <span class="badge bg-light text-dark">{{ articles.total }} bài viết</span>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="d-flex justify-content-md-end align-items-center">
+                <!-- Sort Options -->
+                <div class="dropdown me-3">
+                    <button class="btn btn-outline-secondary dropdown-toggle" type="button" 
+                            data-bs-toggle="dropdown">
+                        <i class="fas fa-sort me-1"></i>Sắp xếp
+                    </button>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="{{ url_for('main.category', slug=category.slug, sort='newest') }}">
+                            <i class="fas fa-clock me-2"></i>Mới nhất
+                        </a></li>
+                        <li><a class="dropdown-item" href="{{ url_for('main.category', slug=category.slug, sort='popular') }}">
+                            <i class="fas fa-fire me-2"></i>Phổ biến nhất
+                        </a></li>
+                        <li><a class="dropdown-item" href="{{ url_for('main.category', slug=category.slug, sort='viewed') }}">
+                            <i class="fas fa-eye me-2"></i>Xem nhiều nhất
+                        </a></li>
+                    </ul>
+                </div>
+                
+                <!-- View Toggle -->
+                <div class="btn-group" role="group">
+                    <button type="button" class="btn btn-outline-secondary active" id="grid-view">
+                        <i class="fas fa-th"></i>
+                    </button>
+                    <button type="button" class="btn btn-outline-secondary" id="list-view">
+                        <i class="fas fa-list"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Articles Grid/List -->
+    {% if articles.items %}
+    <div class="articles-container" id="articles-container">
+        <div class="row" id="articles-grid">
+            {% for article in articles.items %}
+            <div class="col-lg-4 col-md-6 mb-4 article-item">
+                <div class="card article-card h-100 shadow-sm">
+                    {% if article.featured_image %}
+                    <div class="position-relative">
+                        <img src="{{ url_for('static', filename='uploads/articles/' + article.featured_image) }}" 
+                             class="card-img-top" alt="{{ article.title }}" style="height: 200px; object-fit: cover;">
+                        
+                        <!-- Article Meta Overlay -->
+                        <div class="position-absolute top-0 start-0 m-2">
+                            {% if article.is_featured %}
+                            <span class="badge bg-warning text-dark me-1">
+                                <i class="fas fa-star me-1"></i>Nổi bật
+                            </span>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="position-absolute bottom-0 end-0 m-2">
+                            <span class="badge bg-dark bg-opacity-75">
+                                <i class="fas fa-eye me-1"></i>{{ article.view_count }}
+                            </span>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="card-body">
+                        <h5 class="card-title">
+                            <a href="{{ url_for('main.article_detail', slug=article.slug) }}" 
+                               class="text-decoration-none text-dark">
+                                {{ article.title }}
+                            </a>
+                        </h5>
+                        
+                        {% if article.summary %}
+                        <p class="card-text text-muted">{{ article.summary|truncate(120) }}</p>
+                        {% else %}
+                        <p class="card-text text-muted">{{ article.content|truncate_html(120) }}</p>
+                        {% endif %}
+                        
+                        <!-- Tags -->
+                        {% if article.tags %}
+                        <div class="article-tags mb-3">
+                            {% for tag in article.tags[:3] %}
+                            <a href="{{ url_for('main.search', query=tag.name) }}" 
+                               class="badge bg-light text-dark text-decoration-none me-1">
+                                #{{ tag.name }}
+                            </a>
+                            {% endfor %}
+                            {% if article.tags|length > 3 %}
+                            <span class="badge bg-light text-muted">+{{ article.tags|length - 3 }}</span>
+                            {% endif %}
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="card-footer bg-transparent">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div class="author-info d-flex align-items-center">
+                                {% if article.author.avatar_url %}
+                                <img src="{{ url_for('static', filename='uploads/avatars/' + article.author.avatar_url) }}" 
+                                     alt="{{ article.author.full_name or article.author.username }}" 
+                                     class="rounded-circle me-2" width="24" height="24" style="object-fit: cover;">
+                                {% else %}
+                                <div class="bg-secondary rounded-circle d-flex align-items-center justify-content-center me-2" 
+                                     style="width: 24px; height: 24px;">
+                                    <i class="fas fa-user text-white small"></i>
+                                </div>
+                                {% endif %}
+                                <small class="text-muted">{{ article.author.full_name or article.author.username }}</small>
+                            </div>
+                            
+                            <small class="text-muted">
+                                <i class="fas fa-clock me-1"></i>
+                                {{ article.published_at|timeago }}
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    
+    <!-- Pagination -->
+    {% if articles.pages > 1 %}
+    <nav aria-label="Phân trang bài viết" class="mt-4">
+        <ul class="pagination justify-content-center">
+            {% if articles.has_prev %}
+            <li class="page-item">
+                <a class="page-link" href="{{ url_for('main.category', slug=category.slug, page=articles.prev_num) }}">
+                    <i class="fas fa-chevron-left"></i> Trước
+                </a>
+            </li>
+            {% endif %}
+            
+            {% for page_num in articles.iter_pages() %}
+                {% if page_num %}
+                    {% if page_num != articles.page %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('main.category', slug=category.slug, page=page_num) }}">{{ page_num }}</a>
+                    </li>
+                    {% else %}
+                    <li class="page-item active">
+                        <span class="page-link">{{ page_num }}</span>
+                    </li>
+                    {% endif %}
+                {% else %}
+                <li class="page-item disabled">
+                    <span class="page-link">…</span>
+                </li>
+                {% endif %}
+            {% endfor %}
+            
+            {% if articles.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="{{ url_for('main.category', slug=category.slug, page=articles.next_num) }}">
+                    Sau <i class="fas fa-chevron-right"></i>
+                </a>
+            </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+    
+    {% else %}
+    <!-- Empty State -->
+    <div class="empty-state text-center py-5">
+        <div class="mb-4" style="color: {{ category.color }}">
+            {% if category.icon %}
+            <i class="{{ category.icon }} fa-4x"></i>
+            {% else %}
+            <i class="fas fa-newspaper fa-4x"></i>
+            {% endif %}
+        </div>
+        <h3>Chưa có bài viết nào trong {{ category.name }}</h3>
+        <p class="text-muted mb-4">Chúng tôi đang cập nhật tin tức mới nhất về {{ category.name }}. Hãy quay lại sau!</p>
+        <a href="{{ url_for('main.index') }}" class="btn btn-primary">
+            <i class="fas fa-home me-2"></i>
+            Về trang chủ
+        </a>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Quick Category Navigation -->
+<div class="fixed-bottom d-md-none">
+    <div class="bg-white border-top p-2">
+        <div class="d-flex overflow-auto">
+            {% for cat in global_categories %}
+            <a href="{{ url_for('main.category', slug=cat.slug) }}" 
+               class="btn btn-sm me-2 {{ 'btn-primary' if cat.id == category.id else 'btn-outline-secondary' }}" 
+               style="white-space: nowrap;">
+                {% if cat.icon %}
+                <i class="{{ cat.icon }} me-1"></i>
+                {% endif %}
+                {{ cat.name }}
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// View toggle functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const gridViewBtn = document.getElementById('grid-view');
+    const listViewBtn = document.getElementById('list-view');
+    const articlesContainer = document.getElementById('articles-container');
+    const articlesGrid = document.getElementById('articles-grid');
+    
+    // Grid view (default)
+    gridViewBtn.addEventListener('click', function() {
+        gridViewBtn.classList.add('active');
+        listViewBtn.classList.remove('active');
+        
+        articlesGrid.className = 'row';
+        document.querySelectorAll('.article-item').forEach(item => {
+            item.className = 'col-lg-4 col-md-6 mb-4 article-item';
+        });
+    });
+    
+    // List view
+    listViewBtn.addEventListener('click', function() {
+        listViewBtn.classList.add('active');
+        gridViewBtn.classList.remove('active');
+        
+        articlesGrid.className = 'row';
+        document.querySelectorAll('.article-item').forEach(item => {
+            item.className = 'col-12 mb-3 article-item';
+            
+            // Modify card layout for list view
+            const card = item.querySelector('.card');
+            card.classList.add('list-card');
+            
+            const cardBody = card.querySelector('.card-body');
+            if (cardBody) {
+                cardBody.style.display = 'flex';
+                cardBody.style.flexDirection = 'column';
+            }
+        });
+    });
+    
+    // Article card hover effects
+    document.querySelectorAll('.article-card').forEach(card => {
+        card.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-5px)';
+            this.style.transition = 'transform 0.3s ease';
+        });
+        
+        card.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0)';
+        });
+    });
+    
+    // Infinite scroll (optional enhancement)
+    if ('IntersectionObserver' in window) {
+        const lastCard = document.querySelector('.article-item:last-child');
+        if (lastCard) {
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        // Load more articles if needed
+                        console.log('Load more articles');
+                    }
+                });
+            });
+            
+            observer.observe(lastCard);
+        }
+    }
+});
+
+// Smooth scrolling for pagination
+document.querySelectorAll('.pagination a').forEach(link => {
+    link.addEventListener('click', function(e) {
+        // Scroll to top of articles on pagination
+        setTimeout(() => {
+            document.querySelector('.articles-container').scrollIntoView({
+                behavior: 'smooth',
+                block: 'start'
+            });
+        }, 100);
+    });
+});
+</script>
+
+<style>
+/* Custom styles for list view */
+.list-card .card-body {
+    padding: 1rem;
+}
+
+.list-card .card-img-top {
+    height: 120px !important;
+    width: 200px;
+    object-fit: cover;
+    border-radius: 0.375rem;
+}
+
+.list-card {
+    flex-direction: row !important;
+    align-items: center;
+}
+
+.list-card .card-footer {
+    border-top: none !important;
+    padding-top: 0;
+}
+
+/* Category icon animation */
+.category-icon i {
+    transition: transform 0.3s ease;
+}
+
+.category-header:hover .category-icon i {
+    transform: scale(1.1);
+}
+
+/* Mobile optimization */
+@media (max-width: 768px) {
+    .category-header .display-4 {
+        font-size: 2rem;
+    }
+    
+    .category-stats {
+        text-align: center;
+        margin-top: 1rem;
+    }
+}
+</style>
+{% endblock %}

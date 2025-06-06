@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Tin Tức Thể Thao - Cập nhật tin tức thể thao mới nhất{% endblock %}</title>
+    
+    <!-- Meta SEO -->
+    <meta name="description" content="{% block description %}Website tin tức thể thao hàng đầu Việt Nam. Cập nhật tin tức bóng đá, bóng rổ, tennis và các môn thể thao khác 24/7{% endblock %}">
+    <meta name="keywords" content="tin tức thể thao, bóng đá, bóng rổ, tennis, thể thao việt nam">
+    <meta name="author" content="Tin Tức Thể Thao">
+    
+    <!-- Open Graph Meta -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="{% block og_title %}Tin Tức Thể Thao{% endblock %}">
+    <meta property="og:description" content="{% block og_description %}Website tin tức thể thao hàng đầu{% endblock %}">
+    <meta property="og:image" content="{% block og_image %}{{ url_for('static', filename='img/logo-og.png') }}{% endblock %}">
+    
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
+    
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary sticky-top">
+        <div class="container">
+            <!-- Logo -->
+            <a class="navbar-brand fw-bold fs-3" href="{{ url_for('main.index') }}">
+                <i class="fas fa-futbol me-2"></i>
+                SportNews
+            </a>
+            
+            <!-- Mobile Toggle -->
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            
+            <!-- Navigation Menu -->
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('main.index') }}">
+                            <i class="fas fa-home me-1"></i>Trang chủ
+                        </a>
+                    </li>
+                    
+                    <!-- Categories Dropdown -->
+                    {% if global_categories %}
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-list me-1"></i>Danh mục
+                        </a>
+                        <ul class="dropdown-menu">
+                            {% for category in global_categories %}
+                            <li>
+                                <a class="dropdown-item" href="{{ url_for('main.category', slug=category.slug) }}">
+                                    {% if category.icon %}
+                                    <i class="{{ category.icon }} me-2" style="color: {{ category.color }}"></i>
+                                    {% endif %}
+                                    {{ category.name }}
+                                </a>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </li>
+                    {% endif %}
+                </ul>
+                
+                <!-- Search Form -->
+                <form class="d-flex me-3" method="GET" action="{{ url_for('main.search') }}">
+                    <div class="input-group">
+                        <input class="form-control" type="search" name="query" placeholder="Tìm kiếm tin tức..." 
+                               value="{{ request.args.get('query', '') }}">
+                        <button class="btn btn-outline-light" type="submit">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </div>
+                </form>
+                
+                <!-- User Menu -->
+                <ul class="navbar-nav">
+                    {% if current_user.is_authenticated %}
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            {% if current_user.avatar_url %}
+                            <img src="{{ url_for('static', filename='uploads/avatars/' + current_user.avatar_url) }}" 
+                                 alt="Avatar" class="rounded-circle me-1" width="24" height="24">
+                            {% else %}
+                            <i class="fas fa-user-circle me-1"></i>
+                            {% endif %}
+                            {{ current_user.full_name or current_user.username }}
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="{{ url_for('auth.profile') }}">
+                                <i class="fas fa-user me-2"></i>Hồ sơ cá nhân
+                            </a></li>
+                            {% if current_user.is_admin %}
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="{{ url_for('admin.dashboard') }}">
+                                <i class="fas fa-cogs me-2"></i>Quản trị
+                            </a></li>
+                            {% endif %}
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="{{ url_for('auth.logout') }}">
+                                <i class="fas fa-sign-out-alt me-2"></i>Đăng xuất
+                            </a></li>
+                        </ul>
+                    </li>
+                    {% else %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('auth.login') }}">
+                            <i class="fas fa-sign-in-alt me-1"></i>Đăng nhập
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('auth.register') }}">
+                            <i class="fas fa-user-plus me-1"></i>Đăng ký
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+    
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        <div class="container mt-3">
+            {% for category, message in messages %}
+            <div class="alert alert-{{ 'danger' if category == 'error' else category }} alert-dismissible fade show" role="alert">
+                {% if category == 'success' %}
+                <i class="fas fa-check-circle me-2"></i>
+                {% elif category == 'error' %}
+                <i class="fas fa-exclamation-circle me-2"></i>
+                {% elif category == 'warning' %}
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                {% else %}
+                <i class="fas fa-info-circle me-2"></i>
+                {% endif %}
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+    {% endwith %}
+    
+    <!-- Main Content -->
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+    
+    <!-- Footer -->
+    <footer class="bg-dark text-white mt-5">
+        <div class="container py-5">
+            <div class="row">
+                <!-- About Section -->
+                <div class="col-lg-4 mb-4">
+                    <h5 class="fw-bold">
+                        <i class="fas fa-futbol me-2"></i>
+                        SportNews
+                    </h5>
+                    <p class="text-muted">
+                        Website tin tức thể thao hàng đầu Việt Nam. Cập nhật tin tức bóng đá, 
+                        bóng rổ, tennis và các môn thể thao khác 24/7.
+                    </p>
+                    <div class="social-links">
+                        <a href="#" class="text-white me-3"><i class="fab fa-facebook"></i></a>
+                        <a href="#" class="text-white me-3"><i class="fab fa-twitter"></i></a>
+                        <a href="#" class="text-white me-3"><i class="fab fa-youtube"></i></a>
+                        <a href="#" class="text-white"><i class="fab fa-instagram"></i></a>
+                    </div>
+                </div>
+                
+                <!-- Categories -->
+                <div class="col-lg-2 col-md-6 mb-4">
+                    <h6 class="fw-bold">Danh mục</h6>
+                    <ul class="list-unstyled">
+                        {% for category in global_categories[:5] %}
+                        <li class="mb-2">
+                            <a href="{{ url_for('main.category', slug=category.slug) }}" 
+                               class="text-muted text-decoration-none">
+                                {{ category.name }}
+                            </a>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                
+                <!-- Popular Articles -->
+                <div class="col-lg-3 col-md-6 mb-4">
+                    <h6 class="fw-bold">Bài viết phổ biến</h6>
+                    {% if popular_articles %}
+                    <ul class="list-unstyled">
+                        {% for article in popular_articles[:3] %}
+                        <li class="mb-2">
+                            <a href="{{ url_for('main.article_detail', slug=article.slug) }}" 
+                               class="text-muted text-decoration-none small">
+                                {{ article.title|truncate(50) }}
+                            </a>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    {% endif %}
+                </div>
+                
+                <!-- Contact Info -->
+                <div class="col-lg-3 mb-4">
+                    <h6 class="fw-bold">Liên hệ</h6>
+                    <ul class="list-unstyled text-muted">
+                        <li class="mb-2">
+                            <i class="fas fa-envelope me-2"></i>
+                            contact@sportnews.vn
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-phone me-2"></i>
+                            (+84) 123 456 789
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-map-marker-alt me-2"></i>
+                            Hà Nội, Việt Nam
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Copyright -->
+        <div class="border-top border-secondary">
+            <div class="container py-3">
+                <div class="row align-items-center">
+                    <div class="col-md-6">
+                        <p class="mb-0 text-muted small">
+                            © 2024 SportNews. Tất cả quyền được bảo lưu.
+                        </p>
+                    </div>
+                    <div class="col-md-6 text-md-end">
+                        <p class="mb-0 text-muted small">
+                            Thiết kế và phát triển bởi <strong>Python & Flask</strong>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+    
+    <!-- Bootstrap 5 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Custom JavaScript -->
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

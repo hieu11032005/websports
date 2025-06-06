@@ -1,0 +1,386 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard - Tin Thể Thao{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-md-2 bg-dark min-vh-100 p-0">
+            <div class="sidebar">
+                <div class="sidebar-header p-3 text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-shield-alt me-2"></i>Admin Panel
+                    </h5>
+                </div>
+                
+                <nav class="nav flex-column">
+                    <a class="nav-link active text-white" href="{{ url_for('admin.dashboard') }}">
+                        <i class="fas fa-tachometer-alt me-2"></i>Dashboard
+                    </a>
+                    <a class="nav-link text-light" href="{{ url_for('admin.articles') }}">
+                        <i class="fas fa-newspaper me-2"></i>Bài viết
+                    </a>
+                    <a class="nav-link text-light" href="{{ url_for('admin.users') }}">
+                        <i class="fas fa-users me-2"></i>Người dùng
+                    </a>
+                    <a class="nav-link text-light" href="{{ url_for('admin.create_article') }}">
+                        <i class="fas fa-plus me-2"></i>Tạo bài viết
+                    </a>
+                    <hr class="text-secondary">
+                    <a class="nav-link text-light" href="{{ url_for('main.index') }}">
+                        <i class="fas fa-home me-2"></i>Về trang chủ
+                    </a>
+                    <a class="nav-link text-light" href="{{ url_for('auth.logout') }}">
+                        <i class="fas fa-sign-out-alt me-2"></i>Đăng xuất
+                    </a>
+                </nav>
+            </div>
+        </div>
+        
+        <!-- Main Content -->
+        <div class="col-md-10">
+            <div class="main-content p-4">
+                <!-- Header -->
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div>
+                        <h2 class="mb-1">Dashboard</h2>
+                        <p class="text-muted mb-0">Tổng quan hệ thống quản lý tin tức thể thao</p>
+                    </div>
+                    <div>
+                        <span class="text-muted">Xin chào, </span>
+                        <strong>{{ current_user.get_full_name() }}</strong>
+                    </div>
+                </div>
+
+                <!-- Stats Cards -->
+                <div class="row mb-4">
+                    <div class="col-xl-3 col-md-6 mb-4">
+                        <div class="card border-left-primary shadow h-100 py-2">
+                            <div class="card-body">
+                                <div class="row no-gutters align-items-center">
+                                    <div class="col mr-2">
+                                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                            Tổng người dùng
+                                        </div>
+                                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                            {{ total_users }}
+                                        </div>
+                                    </div>
+                                    <div class="col-auto">
+                                        <i class="fas fa-users fa-2x text-gray-300"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-xl-3 col-md-6 mb-4">
+                        <div class="card border-left-success shadow h-100 py-2">
+                            <div class="card-body">
+                                <div class="row no-gutters align-items-center">
+                                    <div class="col mr-2">
+                                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                            Bài viết đã xuất bản
+                                        </div>
+                                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                            {{ published_articles }}
+                                        </div>
+                                    </div>
+                                    <div class="col-auto">
+                                        <i class="fas fa-newspaper fa-2x text-gray-300"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-xl-3 col-md-6 mb-4">
+                        <div class="card border-left-info shadow h-100 py-2">
+                            <div class="card-body">
+                                <div class="row no-gutters align-items-center">
+                                    <div class="col mr-2">
+                                        <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                            Tổng bài viết
+                                        </div>
+                                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                            {{ total_articles }}
+                                        </div>
+                                    </div>
+                                    <div class="col-auto">
+                                        <i class="fas fa-file-alt fa-2x text-gray-300"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-xl-3 col-md-6 mb-4">
+                        <div class="card border-left-warning shadow h-100 py-2">
+                            <div class="card-body">
+                                <div class="row no-gutters align-items-center">
+                                    <div class="col mr-2">
+                                        <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                            Bình luận chờ duyệt
+                                        </div>
+                                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                            {{ pending_comments }}
+                                        </div>
+                                    </div>
+                                    <div class="col-auto">
+                                        <i class="fas fa-comments fa-2x text-gray-300"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Content Row -->
+                <div class="row">
+                    <!-- Recent Articles -->
+                    <div class="col-lg-8 mb-4">
+                        <div class="card shadow mb-4">
+                            <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                                <h6 class="m-0 font-weight-bold text-primary">
+                                    <i class="fas fa-newspaper me-2"></i>Bài viết mới nhất
+                                </h6>
+                                <a href="{{ url_for('admin.articles') }}" class="btn btn-sm btn-primary">
+                                    Xem tất cả
+                                </a>
+                            </div>
+                            <div class="card-body p-0">
+                                <div class="table-responsive">
+                                    <table class="table table-striped mb-0">
+                                        <thead class="table-dark">
+                                            <tr>
+                                                <th>Tiêu đề</th>
+                                                <th>Tác giả</th>
+                                                <th>Danh mục</th>
+                                                <th>Trạng thái</th>
+                                                <th>Ngày tạo</th>
+                                                <th>Hành động</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for article in recent_articles %}
+                                            <tr>
+                                                <td>
+                                                    <div class="d-flex align-items-center">
+                                                        {% if article.featured_image %}
+                                                        <img src="{{ article.featured_image }}" 
+                                                             class="rounded me-2" style="width: 40px; height: 40px; object-fit: cover;">
+                                                        {% endif %}
+                                                        <div>
+                                                            <a href="{{ url_for('main.article_detail', slug=article.slug) }}" 
+                                                               class="text-decoration-none text-dark fw-bold">
+                                                                {{ article.title | truncate(50) }}
+                                                            </a>
+                                                            {% if article.is_featured %}
+                                                            <span class="badge bg-warning text-dark ms-1">NỔI BẬT</span>
+                                                            {% endif %}
+                                                            {% if article.is_breaking %}
+                                                            <span class="badge bg-danger ms-1">TIN NÓNG</span>
+                                                            {% endif %}
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td>{{ article.author.get_full_name() }}</td>
+                                                <td>
+                                                    <span class="badge" style="background-color: {{ article.category.color or '#007bff' }}">
+                                                        {{ article.category.name }}
+                                                    </span>
+                                                </td>
+                                                <td>
+                                                    <span class="badge bg-{{ 'success' if article.status.value == 'published' else 'warning' }}">
+                                                        {{ 'Đã xuất bản' if article.status.value == 'published' else 'Bản nháp' }}
+                                                    </span>
+                                                </td>
+                                                <td>{{ article.created_at | datetime }}</td>
+                                                <td>
+                                                    <div class="btn-group btn-group-sm">
+                                                        <a href="{{ url_for('main.article_detail', slug=article.slug) }}" 
+                                                           class="btn btn-outline-primary btn-sm">
+                                                            <i class="fas fa-eye"></i>
+                                                        </a>
+                                                        <a href="{{ url_for('admin.edit_article', id=article.id) }}" 
+                                                           class="btn btn-outline-warning btn-sm">
+                                                            <i class="fas fa-edit"></i>
+                                                        </a>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                            {% endfor %}
+                                            {% if not recent_articles %}
+                                            <tr>
+                                                <td colspan="6" class="text-center text-muted py-3">
+                                                    Chưa có bài viết nào
+                                                </td>
+                                            </tr>
+                                            {% endif %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Pending Comments -->
+                    <div class="col-lg-4 mb-4">
+                        <div class="card shadow mb-4">
+                            <div class="card-header py-3">
+                                <h6 class="m-0 font-weight-bold text-warning">
+                                    <i class="fas fa-comments me-2"></i>Bình luận chờ duyệt
+                                </h6>
+                            </div>
+                            <div class="card-body p-0">
+                                {% if pending_comments_list %}
+                                {% for comment in pending_comments_list %}
+                                <div class="p-3 {% if not loop.last %}border-bottom{% endif %}">
+                                    <div class="d-flex align-items-start">
+                                        <img src="{{ comment.author.email | gravatar(30) }}" 
+                                             class="rounded-circle me-2" alt="Avatar">
+                                        <div class="flex-grow-1">
+                                            <div class="d-flex justify-content-between align-items-start mb-1">
+                                                <strong class="small">{{ comment.author.get_full_name() }}</strong>
+                                                <small class="text-muted">{{ comment.created_at | datetime }}</small>
+                                            </div>
+                                            <p class="small mb-2">{{ comment.content | truncate(80) }}</p>
+                                            <p class="small text-muted mb-2">
+                                                Bài viết: <a href="{{ url_for('main.article_detail', slug=comment.article.slug) }}" 
+                                                             class="text-decoration-none">
+                                                    {{ comment.article.title | truncate(30) }}
+                                                </a>
+                                            </p>
+                                            <div class="btn-group btn-group-sm">
+                                                <a href="{{ url_for('admin.approve_comment', id=comment.id) }}" 
+                                                   class="btn btn-success btn-sm">
+                                                    <i class="fas fa-check"></i> Duyệt
+                                                </a>
+                                                <button class="btn btn-danger btn-sm" 
+                                                        onclick="deleteComment({{ comment.id }})">
+                                                    <i class="fas fa-times"></i> Xóa
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                                {% else %}
+                                <div class="text-center text-muted p-3">
+                                    <i class="fas fa-check-circle fa-2x mb-2"></i>
+                                    <p class="mb-0">Không có bình luận chờ duyệt</p>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card shadow">
+                            <div class="card-header">
+                                <h6 class="m-0 font-weight-bold text-primary">
+                                    <i class="fas fa-bolt me-2"></i>Thao tác nhanh
+                                </h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-3 mb-3">
+                                        <a href="{{ url_for('admin.create_article') }}" 
+                                           class="btn btn-primary btn-lg w-100">
+                                            <i class="fas fa-plus fa-2x mb-2"></i><br>
+                                            Tạo bài viết mới
+                                        </a>
+                                    </div>
+                                    <div class="col-md-3 mb-3">
+                                        <a href="{{ url_for('admin.articles') }}" 
+                                           class="btn btn-info btn-lg w-100">
+                                            <i class="fas fa-newspaper fa-2x mb-2"></i><br>
+                                            Quản lý bài viết
+                                        </a>
+                                    </div>
+                                    <div class="col-md-3 mb-3">
+                                        <a href="{{ url_for('admin.users') }}" 
+                                           class="btn btn-success btn-lg w-100">
+                                            <i class="fas fa-users fa-2x mb-2"></i><br>
+                                            Quản lý người dùng
+                                        </a>
+                                    </div>
+                                    <div class="col-md-3 mb-3">
+                                        <a href="{{ url_for('main.index') }}" 
+                                           class="btn btn-secondary btn-lg w-100">
+                                            <i class="fas fa-eye fa-2x mb-2"></i><br>
+                                            Xem website
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_head %}
+<style>
+.border-left-primary {
+    border-left: 0.25rem solid #4e73df !important;
+}
+.border-left-success {
+    border-left: 0.25rem solid #1cc88a !important;
+}
+.border-left-info {
+    border-left: 0.25rem solid #36b9cc !important;
+}
+.border-left-warning {
+    border-left: 0.25rem solid #f6c23e !important;
+}
+.text-xs {
+    font-size: 0.7rem;
+}
+.sidebar .nav-link:hover {
+    background-color: rgba(255,255,255,0.1);
+}
+.sidebar .nav-link.active {
+    background-color: rgba(255,255,255,0.2);
+}
+</style>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+function deleteComment(commentId) {
+    if (confirm('Bạn có chắc chắn muốn xóa bình luận này?')) {
+        fetch(`/admin/delete-comment/${commentId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token() }}'
+            }
+        })
+        .then(response => {
+            if (response.ok) {
+                location.reload();
+            } else {
+                alert('Có lỗi xảy ra khi xóa bình luận');
+            }
+        })
+        .catch(error => {
+            alert('Có lỗi xảy ra khi xóa bình luận');
+            console.error('Error:', error);
+        });
+    }
+}
+
+// Auto refresh dashboard every 5 minutes
+setTimeout(function() {
+    location.reload();
+}, 300000);
+</script>
+{% endblock %}

@@ -1,0 +1,281 @@
+{% extends "base.html" %}
+
+{% block title %}Tạo bài viết mới - Tin Thể Thao{% endblock %}
+
+{% block extra_head %}
+<!-- TinyMCE Editor -->
+<script src="https://cdn.tiny.cloud/1/no-api-key/tinymce/6/tinymce.min.js" referrerpolicy="origin"></script>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2>
+                    <i class="fas fa-plus-circle me-2 text-primary"></i>Tạo bài viết mới
+                </h2>
+                <a href="{{ url_for('admin.articles') }}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-1"></i>Quay lại
+                </a>
+            </div>
+            
+            <div class="card shadow-sm border-0">
+                <div class="card-body">
+                    <form method="POST">
+                        {{ form.hidden_tag() }}
+                        
+                        <div class="row">
+                            <!-- Title -->
+                            <div class="col-md-8 mb-3">
+                                {{ form.title.label(class="form-label fw-bold") }}
+                                {{ form.title(class="form-control form-control-lg", placeholder="Nhập tiêu đề bài viết...") }}
+                                {% if form.title.errors %}
+                                    {% for error in form.title.errors %}
+                                        <div class="text-danger small mt-1">{{ error }}</div>
+                                    {% endfor %}
+                                {% endif %}
+                            </div>
+                            
+                            <!-- Category -->
+                            <div class="col-md-4 mb-3">
+                                {{ form.category_id.label(class="form-label fw-bold") }}
+                                {{ form.category_id(class="form-select form-select-lg") }}
+                                {% if form.category_id.errors %}
+                                    {% for error in form.category_id.errors %}
+                                        <div class="text-danger small mt-1">{{ error }}</div>
+                                    {% endfor %}
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <!-- Summary -->
+                        <div class="mb-3">
+                            {{ form.summary.label(class="form-label fw-bold") }}
+                            {{ form.summary(class="form-control", rows="3", placeholder="Tóm tắt ngắn gọn về bài viết...") }}
+                            {% if form.summary.errors %}
+                                {% for error in form.summary.errors %}
+                                    <div class="text-danger small mt-1">{{ error }}</div>
+                                {% endfor %}
+                            {% endif %}
+                            <div class="form-text">Tóm tắt sẽ hiển thị trong danh sách bài viết và kết quả tìm kiếm</div>
+                        </div>
+                        
+                        <!-- Content -->
+                        <div class="mb-4">
+                            {{ form.content.label(class="form-label fw-bold") }}
+                            {{ form.content(class="form-control", id="content-editor") }}
+                            {% if form.content.errors %}
+                                {% for error in form.content.errors %}
+                                    <div class="text-danger small mt-1">{{ error }}</div>
+                                {% endfor %}
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Options -->
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <div class="card bg-light">
+                                    <div class="card-body">
+                                        <h6 class="card-title">
+                                            <i class="fas fa-cog me-2"></i>Tùy chọn
+                                        </h6>
+                                        
+                                        <div class="form-check mb-2">
+                                            {{ form.is_featured(class="form-check-input") }}
+                                            {{ form.is_featured.label(class="form-check-label") }}
+                                            <small class="d-block text-muted">Hiển thị trong mục bài viết nổi bật</small>
+                                        </div>
+                                        
+                                        <div class="form-check mb-2">
+                                            {{ form.is_breaking(class="form-check-input") }}
+                                            {{ form.is_breaking.label(class="form-check-label") }}
+                                            <small class="d-block text-muted">Hiển thị trong ticker tin nóng</small>
+                                        </div>
+                                        
+                                        <div class="form-check">
+                                            {{ form.publish(class="form-check-input") }}
+                                            {{ form.publish.label(class="form-check-label") }}
+                                            <small class="d-block text-muted">Xuất bản ngay lập tức</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="card bg-light">
+                                    <div class="card-body">
+                                        <h6 class="card-title">
+                                            <i class="fas fa-info-circle me-2"></i>Hướng dẫn
+                                        </h6>
+                                        <ul class="list-unstyled mb-0 small">
+                                            <li class="mb-1">
+                                                <i class="fas fa-check text-success me-1"></i>
+                                                Tiêu đề nên từ 10-200 ký tự
+                                            </li>
+                                            <li class="mb-1">
+                                                <i class="fas fa-check text-success me-1"></i>
+                                                Tóm tắt không quá 500 ký tự
+                                            </li>
+                                            <li class="mb-1">
+                                                <i class="fas fa-check text-success me-1"></i>
+                                                Nội dung ít nhất 100 ký tự
+                                            </li>
+                                            <li>
+                                                <i class="fas fa-check text-success me-1"></i>
+                                                Chọn danh mục phù hợp
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Action Buttons -->
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <button type="submit" class="btn btn-primary btn-lg">
+                                    <i class="fas fa-save me-2"></i>Lưu bài viết
+                                </button>
+                                <button type="button" class="btn btn-outline-secondary btn-lg ms-2" 
+                                        onclick="saveDraft()">
+                                    <i class="fas fa-file-alt me-2"></i>Lưu nháp
+                                </button>
+                            </div>
+                            
+                            <div>
+                                <button type="button" class="btn btn-outline-info" onclick="previewArticle()">
+                                    <i class="fas fa-eye me-1"></i>Xem trước
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Preview Modal -->
+<div class="modal fade" id="previewModal" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-eye me-2"></i>Xem trước bài viết
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="previewContent">
+                <!-- Preview content will be loaded here -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+// Initialize TinyMCE Editor
+tinymce.init({
+    selector: '#content-editor',
+    height: 400,
+    menubar: false,
+    plugins: [
+        'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview',
+        'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
+        'insertdatetime', 'media', 'table', 'help', 'wordcount'
+    ],
+    toolbar: 'undo redo | blocks | bold italic forecolor | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | removeformat | help',
+    content_style: 'body { font-family: -apple-system, BlinkMacSystemFont, San Francisco, Segoe UI, Roboto, Helvetica Neue, sans-serif; font-size: 14px; line-height: 1.6; }'
+});
+
+// Save as draft
+function saveDraft() {
+    const publishCheckbox = document.querySelector('input[name="publish"]');
+    publishCheckbox.checked = false;
+    document.querySelector('form').submit();
+}
+
+// Preview article
+function previewArticle() {
+    const title = document.querySelector('input[name="title"]').value;
+    const summary = document.querySelector('textarea[name="summary"]').value;
+    const content = tinymce.get('content-editor').getContent();
+    
+    if (!title || !content) {
+        alert('Vui lòng nhập tiêu đề và nội dung!');
+        return;
+    }
+    
+    const previewContent = `
+        <article class="preview-article">
+            <header class="mb-4">
+                <h1 class="display-5 fw-bold mb-3">${title}</h1>
+                ${summary ? `<p class="lead text-muted">${summary}</p>` : ''}
+                <div class="text-muted small mb-3">
+                    <i class="fas fa-user me-1"></i>{{ current_user.get_full_name() }}
+                    <span class="mx-2">•</span>
+                    <i class="fas fa-clock me-1"></i>Hôm nay
+                </div>
+            </header>
+            <div class="article-content">
+                ${content}
+            </div>
+        </article>
+    `;
+    
+    document.getElementById('previewContent').innerHTML = previewContent;
+    new bootstrap.Modal(document.getElementById('previewModal')).show();
+}
+
+// Auto-save functionality (optional)
+let autoSaveTimer;
+function startAutoSave() {
+    autoSaveTimer = setInterval(function() {
+        // Auto-save logic can be implemented here
+        console.log('Auto-saving...');
+    }, 300000); // Auto-save every 5 minutes
+}
+
+// Character counter
+function updateCharCount(input, counterId, maxLength) {
+    const currentLength = input.value.length;
+    const counter = document.getElementById(counterId);
+    if (counter) {
+        counter.textContent = `${currentLength}/${maxLength}`;
+        counter.className = currentLength > maxLength ? 'text-danger' : 'text-muted';
+    }
+}
+
+// Add character counters to inputs
+document.addEventListener('DOMContentLoaded', function() {
+    const titleInput = document.querySelector('input[name="title"]');
+    const summaryInput = document.querySelector('textarea[name="summary"]');
+    
+    if (titleInput) {
+        titleInput.addEventListener('input', function() {
+            updateCharCount(this, 'titleCount', 200);
+        });
+    }
+    
+    if (summaryInput) {
+        summaryInput.addEventListener('input', function() {
+            updateCharCount(this, 'summaryCount', 500);
+        });
+    }
+    
+    startAutoSave();
+});
+
+// Clean up on page unload
+window.addEventListener('beforeunload', function() {
+    if (autoSaveTimer) {
+        clearInterval(autoSaveTimer);
+    }
+});
+</script>
+{% endblock %}
