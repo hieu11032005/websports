@@ -1,0 +1,20 @@
+Chào bạn, cảm ơn vì đã cố gắng sửa chữa và thêm nội dung mẫu.
+
+Tôi đã kiểm tra trang chủ. Tuy nhiên, khi tôi cố gắng **nhấn vào bất kỳ bài báo nào để đọc, tôi lại gặp lỗi hệ thống 500 (Internal Server Error).**
+
+Để khắc phục vấn đề này và đảm bảo mọi thứ hoạt động trơn tru (bao gồm cả việc triển khai đơn giản trên máy cá nhân), bạn vui lòng:
+
+1.  **Ưu tiên kiểm tra Console/Logs:** Điều quan trọng nhất là bạn hãy xem **lỗi chi tiết (traceback) trong phần Console/Logs** của Replit khi tôi cố gắng truy cập một bài báo. Lỗi này sẽ cho biết chính xác nguyên nhân gây ra lỗi 500 (ví dụ: lỗi trong code lấy dữ liệu, lỗi trong việc xử lý dữ liệu, hoặc lỗi khi render template).
+2.  **Khắc phục logic hiển thị bài báo:** Dựa vào traceback, hãy sửa lỗi trong phần code xử lý việc hiển thị chi tiết bài báo, bao gồm:
+    *   Đảm bảo việc **lấy dữ liệu bài báo từ PostgreSQL hoạt động chính xác**.
+    *   Xử lý mọi trường hợp dữ liệu bài báo bị thiếu hoặc không đúng định dạng.
+    *   Kiểm tra và sửa lỗi trong **template Flask** dùng để hiển thị nội dung bài báo, đảm bảo tất cả dữ liệu được truyền vào template đều hợp lệ.
+3.  **Tối ưu tổng thể cho cả chức năng và thiết kế:**
+    *   Đảm bảo chức năng **tìm kiếm và lọc tin tức hoạt động đúng** sau khi có dữ liệu ổn định.
+    *   Tiếp tục **nâng cấp giao diện** để nó đẹp mắt, logic, dễ điều hướng và responsive hơn nữa, đúng theo chủ đề tin tức thể thao.
+4.  **Đảm bảo khả năng triển khai cục bộ (ưu tiên cao):**
+    *   Vui lòng đảm bảo rằng các phiên bản thư viện trong `pyproject.toml` vẫn **hoàn toàn tương thích và ổn định với Python 3.12**.
+    *   Nếu vẫn có vấn đề về tương thích phụ thuộc (đặc biệt là với `spacy` và `smart-open`) trên Python 3.12, bạn có thể cân nhắc thay đổi yêu cầu Python trong `pyproject.toml` sang **Python 3.10** để đảm bảo `poetry install` chạy thành công và ứng dụng hoạt động không lỗi trên máy cá nhân của tôi.
+
+Mục tiêu là có một phiên bản cuối cùng mà tôi có thể tải về, chạy `poetry install`, và ứng dụng hoạt động đầy đủ chức năng, đẹp mắt và trơn tru ngay mà không cần nhiều tinh chỉnh.
+Cảm ơn bạn!

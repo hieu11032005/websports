@@ -114,7 +114,7 @@ def add_comment(article_id):
     if form.validate_on_submit():
         comment = Comment(
             content=form.content.data,
-            author_id=current_user.id,
+            user_id=current_user.id,
             article_id=article_id
         )
         db.session.add(comment)

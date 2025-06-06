@@ -34,9 +34,9 @@ class User(UserMixin, db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     last_login = db.Column(db.DateTime, nullable=True)
     
-    # Relationships
+    # Relationships - updated for corrected foreign keys
     articles = db.relationship('Article', backref='author', lazy='dynamic', cascade='all, delete-orphan')
-    comments = db.relationship('Comment', backref='author', lazy='dynamic', cascade='all, delete-orphan')
+    comments = db.relationship('Comment', backref='author', foreign_keys='Comment.user_id', lazy='dynamic', cascade='all, delete-orphan')
     
     def set_password(self, password):
         """Mã hóa và lưu mật khẩu"""
@@ -127,13 +127,15 @@ class Comment(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     content = db.Column(db.Text, nullable=False)
     is_approved = db.Column(db.Boolean, default=True)
+    is_hidden = db.Column(db.Boolean, default=False)
     
     # Thời gian
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
-    # Foreign keys
-    author_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    # Foreign keys - matching database schema
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     article_id = db.Column(db.Integer, db.ForeignKey('articles.id'), nullable=False)
+    parent_id = db.Column(db.Integer, db.ForeignKey('comments.id'), nullable=True)
     
     def __repr__(self):
         return f'<Comment {self.id}>'
