@@ -86,10 +86,17 @@ class Article(db.Model):
     content = db.Column(db.Text, nullable=False)
     featured_image = db.Column(db.String(200), nullable=True)
     
+    # Additional fields matching database schema
+    image_caption = db.Column(db.String(200), nullable=True)
+    meta_description = db.Column(db.String(500), nullable=True)
+    meta_keywords = db.Column(db.String(200), nullable=True)
+    
     # Trạng thái bài viết
     is_published = db.Column(db.Boolean, default=False)
     is_featured = db.Column(db.Boolean, default=False)  # Bài viết nổi bật
-    view_count = db.Column(db.Integer, default=0)
+    views_count = db.Column(db.Integer, default=0)
+    likes_count = db.Column(db.Integer, default=0)
+    comments_count = db.Column(db.Integer, default=0)
     
     # Thời gian
     created_at = db.Column(db.DateTime, default=datetime.utcnow, index=True)
@@ -131,9 +138,8 @@ class Advertisement(db.Model):
     
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(100), nullable=False)
-    image_url = db.Column(db.String(200), nullable=True)
+    content = db.Column(db.Text, nullable=False)
     link_url = db.Column(db.String(200), nullable=True)
-    content = db.Column(db.Text, nullable=True)
     
     # Vị trí hiển thị
     position = db.Column(db.String(20), nullable=False)  # header, sidebar, footer, inline
@@ -143,9 +149,9 @@ class Advertisement(db.Model):
     start_date = db.Column(db.DateTime, nullable=True)
     end_date = db.Column(db.DateTime, nullable=True)
     
-    # Thống kê
-    view_count = db.Column(db.Integer, default=0)
-    click_count = db.Column(db.Integer, default=0)
+    # Thống kê - matching database schema
+    views_count = db.Column(db.Integer, default=0)
+    clicks_count = db.Column(db.Integer, default=0)
     
     # Thời gian
     created_at = db.Column(db.DateTime, default=datetime.utcnow)

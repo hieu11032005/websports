@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% block title %}Không tìm thấy trang - Tin Tức Thể Thao{% endblock %}
+
+{% block content %}
+<div class="container text-center py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="error-page">
+                <div class="error-icon mb-4">
+                    <i class="fas fa-search fa-5x text-muted"></i>
+                </div>
+                <h1 class="display-4 text-primary mb-3">404</h1>
+                <h3 class="mb-3">Không tìm thấy trang</h3>
+                <p class="text-muted mb-4">
+                    Trang bạn đang tìm kiếm không tồn tại hoặc đã được di chuyển.
+                </p>
+                <div class="d-flex justify-content-center gap-3">
+                    <a href="{{ url_for('main.index') }}" class="btn btn-primary">
+                        <i class="fas fa-home me-2"></i>
+                        Về trang chủ
+                    </a>
+                    <a href="{{ url_for('main.search') }}" class="btn btn-outline-secondary">
+                        <i class="fas fa-search me-2"></i>
+                        Tìm kiếm
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
