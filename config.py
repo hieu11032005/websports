@@ -3,8 +3,13 @@ import os
 class Config:
     """Lớp cấu hình cơ bản"""
     SECRET_KEY = os.environ.get('SESSION_SECRET') or 'dev-secret-key-change-in-production'
+    
+    # Sửa đổi chuỗi kết nối database ở đây
+    # Thay 'postgres' bằng 'sportsuser'
+    # Mật khẩu giữ nguyên là '11032005'
     SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or \
-        'postgresql://postgres:password@localhost:5432/sports_news'
+        'postgresql://sportspulser_user:11032005@localhost:5432/sports_news' 
+    
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     SQLALCHEMY_ENGINE_OPTIONS = {
         'pool_recycle': 300,

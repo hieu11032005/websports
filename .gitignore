@@ -1,0 +1,29 @@
+# Virtual environment
+venv/
+.env
+.flaskenv
+
+# Python bytecode
+__pycache__/
+*.pyc
+
+# Database files (if using SQLite)
+*.db
+*.sqlite
+instance/
+
+# Uploaded files (user-generated content, can be large)
+static/uploads/
+
+# Logs
+*.log
+
+# IDE specific files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Other system files
+.DS_Store
+Thumbs.db

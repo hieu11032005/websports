@@ -11,7 +11,9 @@
             <div class="advertisement-banner text-center">
                 {% if ads_header.image_url %}
                 <a href="{{ ads_header.link_url or '#' }}" target="_blank" rel="noopener">
-                    <img src="{{ ads_header.image_url }}" alt="{{ ads_header.title }}" class="img-fluid">
+                    <!-- Sửa: Đảm bảo đường dẫn image_url cho quảng cáo đúng.
+                         Nếu save_uploaded_file trả về "uploads/ads/filename.jpg", thì cần url_for('static', filename=ads_header.image_url) -->
+                    <img src="{{ url_for('static', filename=ads_header.image_url) }}" alt="{{ ads_header.title }}" class="img-fluid">
                 </a>
                 {% else %}
                 <div class="bg-light p-4 rounded">
@@ -37,15 +39,20 @@
                 {% for article in featured_articles %}
                 <div class="col-lg-4 col-md-6 mb-4">
                     <div class="card featured-card h-100 shadow-sm">
-                        {% if article.featured_image %}
                         <div class="position-relative">
-                            <img src="{{ url_for('static', filename='uploads/articles/' + article.featured_image) }}" 
+                            {% if article.featured_image %}
+                            <!-- Sửa: Bỏ 'uploads/articles/' bị lặp. Giờ chỉ cần filename trực tiếp. -->
+                            <img src="{{ url_for('static', filename=article.featured_image) }}" 
                                  class="card-img-top" alt="{{ article.title }}" style="height: 200px; object-fit: cover;">
+                            {% else %}
+                            <!-- Thêm ảnh mặc định -->
+                            <img src="{{ url_for('static', filename='images/default_article_placeholder.jpg') }}" 
+                                 class="card-img-top" alt="Ảnh mặc định" style="height: 200px; object-fit: cover;">
+                            {% endif %}
                             <span class="badge bg-danger position-absolute top-0 start-0 m-2">
                                 <i class="fas fa-star me-1"></i>Nổi bật
                             </span>
                         </div>
-                        {% endif %}
                         
                         <div class="card-body">
                             <div class="d-flex align-items-center mb-2">
@@ -65,6 +72,8 @@
                             
                             {% if article.summary %}
                             <p class="card-text text-muted">{{ article.summary|truncate(120) }}</p>
+                            {% else %}
+                            <p class="card-text text-muted">{{ article.content|truncate_html(120) }}</p>
                             {% endif %}
                             
                             <div class="d-flex justify-content-between align-items-center">
@@ -72,7 +81,8 @@
                                     <i class="fas fa-user me-1"></i>{{ article.author.full_name or article.author.username }}
                                 </small>
                                 <small class="text-muted">
-                                    <i class="fas fa-eye me-1"></i>{{ article.view_count }} lượt xem
+                                    <!-- Sửa lỗi typo: view_count -> views_count -->
+                                    <i class="fas fa-eye me-1"></i>{{ article.views_count }} lượt xem
                                 </small>
                             </div>
                         </div>
@@ -106,7 +116,7 @@
                         <li>
                             <a class="dropdown-item" href="{{ url_for('main.category', slug=category.slug) }}">
                                 {% if category.icon %}
-                                <i class="{{ category.icon }} me-2"></i>
+                                <i class="{{ category.icon }} me-2" style="color: {{ category.color or '#6c757d' }}"></i>
                                 {% endif %}
                                 {{ category.name }}
                             </a>
@@ -122,16 +132,21 @@
                 {% for article in articles.items %}
                 <div class="col-md-6 mb-4">
                     <div class="card article-card h-100 shadow-sm">
-                        {% if article.featured_image %}
                         <div class="position-relative">
-                            <img src="{{ url_for('static', filename='uploads/articles/' + article.featured_image) }}" 
+                            {% if article.featured_image %}
+                            <!-- Sửa: Bỏ 'uploads/articles/' bị lặp -->
+                            <img src="{{ url_for('static', filename=article.featured_image) }}" 
                                  class="card-img-top" alt="{{ article.title }}" style="height: 180px; object-fit: cover;">
+                            {% else %}
+                            <!-- Thêm ảnh mặc định -->
+                            <img src="{{ url_for('static', filename='images/default_article_placeholder.jpg') }}" 
+                                 class="card-img-top" alt="Ảnh mặc định" style="height: 180px; object-fit: cover;">
+                            {% endif %}
                             <span class="badge position-absolute top-0 start-0 m-2" 
                                   style="background-color: {{ article.category.color }}">
                                 {{ article.category.name }}
                             </span>
                         </div>
-                        {% endif %}
                         
                         <div class="card-body">
                             <h5 class="card-title">
@@ -153,7 +168,8 @@
                                     {{ article.published_at|timeago }}
                                 </small>
                                 <small class="text-muted">
-                                    <i class="fas fa-eye me-1"></i>{{ article.view_count }}
+                                    <!-- Sửa lỗi typo: view_count -> views_count -->
+                                    <i class="fas fa-eye me-1"></i>{{ article.views_count }}
                                 </small>
                             </div>
                         </div>
@@ -227,16 +243,20 @@
                     {% for article in popular_articles %}
                     <div class="border-bottom p-3 {% if not loop.last %}border-bottom{% endif %}">
                         <div class="row align-items-center">
-                            {% if article.featured_image %}
                             <div class="col-4">
-                                <img src="{{ url_for('static', filename='uploads/articles/' + article.featured_image) }}" 
+                                {% if article.featured_image %}
+                                <!-- Sửa: Bỏ 'uploads/articles/' bị lặp -->
+                                <img src="{{ url_for('static', filename=article.featured_image) }}" 
                                      class="img-fluid rounded" alt="{{ article.title }}" 
                                      style="height: 60px; object-fit: cover;">
+                                {% else %}
+                                <!-- Thêm ảnh mặc định -->
+                                <img src="{{ url_for('static', filename='images/default_article_placeholder.jpg') }}" 
+                                     class="img-fluid rounded" alt="Ảnh mặc định" 
+                                     style="height: 60px; object-fit: cover;">
+                                {% endif %}
                             </div>
                             <div class="col-8">
-                            {% else %}
-                            <div class="col-12">
-                            {% endif %}
                                 <h6 class="mb-1">
                                     <a href="{{ url_for('main.article_detail', slug=article.slug) }}" 
                                        class="text-decoration-none text-dark">
@@ -244,7 +264,8 @@
                                     </a>
                                 </h6>
                                 <small class="text-muted">
-                                    <i class="fas fa-eye me-1"></i>{{ article.view_count }} lượt xem
+                                    <!-- Sửa lỗi typo: view_count -> views_count -->
+                                    <i class="fas fa-eye me-1"></i>{{ article.views_count }} lượt xem
                                 </small>
                             </div>
                         </div>
@@ -270,7 +291,7 @@
                             <a href="{{ url_for('main.category', slug=category.slug) }}" 
                                class="btn btn-outline-secondary btn-sm w-100 text-start">
                                 {% if category.icon %}
-                                <i class="{{ category.icon }} me-2" style="color: {{ category.color }}"></i>
+                                <i class="{{ category.icon }} me-2" style="color: {{ category.color or '#6c757d' }}"></i>
                                 {% endif %}
                                 {{ category.name }}
                             </a>
@@ -295,7 +316,9 @@
                     <div class="advertisement-item mb-3 {% if not loop.last %}border-bottom pb-3{% endif %}">
                         {% if ad.image_url %}
                         <a href="{{ ad.link_url or '#' }}" target="_blank" rel="noopener">
-                            <img src="{{ ad.image_url }}" alt="{{ ad.title }}" class="img-fluid rounded">
+                            <!-- Sửa: Đảm bảo đường dẫn image_url cho quảng cáo đúng.
+                                 Nếu save_uploaded_file trả về "uploads/ads/filename.jpg", thì cần url_for('static', filename=ad.image_url) -->
+                            <img src="{{ url_for('static', filename=ad.image_url) }}" alt="{{ ad.title }}" class="img-fluid rounded">
                         </a>
                         {% endif %}
                         {% if ad.content %}
@@ -360,7 +383,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // Article card hover effects
-document.querySelectorAll('.article-card').forEach(card => {
+document.querySelectorAll('.article-card, .featured-card').forEach(card => {
     card.addEventListener('mouseenter', function() {
         this.style.transform = 'translateY(-5px)';
         this.style.transition = 'transform 0.3s ease';
