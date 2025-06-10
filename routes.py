@@ -1,12 +1,15 @@
-from datetime import datetime
+# routes.py
+from datetime import datetime, date, timedelta # Đảm bảo import date và timedelta cho dashboard stats
 from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify, current_app
 from flask_login import login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash
-from sqlalchemy import or_, desc, func # Đã có desc
+from sqlalchemy import or_, desc, func # Đảm bảo desc và func được import
+
 from app import db
 from models import User, Article, Category, Comment, Tag, Advertisement, SiteStats
-from forms import LoginForm, RegisterForm, ProfileForm, ArticleForm, CommentForm, SearchForm, CategoryForm
-from utils import slugify, save_uploaded_file, format_datetime, time_ago, process_tags, search_articles, generate_excerpt # Thêm generate_excerpt nếu dùng cho truncate_html
+# Đảm bảo tất cả các Form cần thiết đã được import
+from forms import LoginForm, RegisterForm, ProfileForm, ArticleForm, CommentForm, SearchForm, CategoryForm, AdvertisementForm 
+from utils import slugify, save_uploaded_file, format_datetime, time_ago, process_tags, search_articles, generate_excerpt
 
 # Tạo các Blueprint
 main_bp = Blueprint('main', __name__)
@@ -128,7 +131,7 @@ def add_comment(article_id):
     else:
         flash('Có lỗi xảy ra khi thêm bình luận. Vui lòng thử lại.', 'error')
 
-    return redirect(url_for('main.article_detail', slug=article.slug)) # Chắc chắn redirect về slug
+    return redirect(url_for('main.article_detail', slug=article.slug))
 
 # ========== AUTH ROUTES ==========
 
@@ -210,7 +213,7 @@ def profile():
         current_user.username = form.username.data
         current_user.email = form.email.data
         current_user.full_name = form.full_name.data
-        current_user.bio = form.bio.data if hasattr(form, 'bio') else None # Kiểm tra field bio có tồn tại không
+        current_user.bio = form.bio.data if hasattr(form, 'bio') else None 
         
         # Xử lý upload avatar
         if form.avatar.data:
@@ -258,18 +261,16 @@ def dashboard():
     recent_comments = Comment.query.order_by(Comment.created_at.desc()).limit(5).all()
 
     # Thống kê theo ngày (7 ngày gần đây)
-    from datetime import date, timedelta
     stats = []
     for i in range(7):
         target_date = date.today() - timedelta(days=i)
         day_stats = SiteStats.query.filter_by(date=target_date).first()
-        # Thay vì mock, bạn sẽ lấy dữ liệu thực tế từ SiteStats
         if day_stats:
             stats.append({
                 'date': target_date.strftime('%d/%m'),
                 'views': day_stats.page_views,
                 'comments': day_stats.comments_count,
-                'new_users': day_stats.new_users # Thêm thống kê user nếu có
+                'new_users': day_stats.new_users
             })
         else:
             stats.append({
@@ -409,10 +410,204 @@ def users():
 
     return render_template('admin/users.html', users=users, search=search)
 
+# Bổ sung các route cho Quản lý Danh mục
+@admin_bp.route('/categories')
+def categories():
+    """Quản lý danh mục"""
+    page = request.args.get('page', 1, type=int)
+    search = request.args.get('search', '')
+
+    query = Category.query
+
+    if search:
+        query = query.filter(Category.name.contains(search))
+
+    categories = query.order_by(Category.created_at.desc())\
+        .paginate(page=page, per_page=20, error_out=False)
+    
+    return render_template('admin/categories.html', categories=categories, search=search)
+
+@admin_bp.route('/category/new', methods=['GET', 'POST'])
+@admin_bp.route('/category/edit/<int:id>', methods=['GET', 'POST'])
+def category_form(id=None):
+    """Form tạo/chỉnh sửa danh mục"""
+    category = Category.query.get(id) if id else None
+    form = CategoryForm() 
+
+    if form.validate_on_submit():
+        if not category:
+            category = Category()
+            db.session.add(category)
+        
+        category.name = form.name.data
+        category.slug = slugify(form.name.data) 
+        category.description = form.description.data
+        category.icon = form.icon.data
+        category.color = form.color.data
+        category.is_active = form.is_active.data
+
+        db.session.commit()
+        action = 'tạo' if not id else 'cập nhật'
+        flash(f'Danh mục đã được {action} thành công!', 'success')
+        return redirect(url_for('admin.categories'))
+
+    if category and request.method == 'GET':
+        form.name.data = category.name
+        form.description.data = category.description
+        form.icon.data = category.icon
+        form.color.data = category.color
+        form.is_active.data = category.is_active
+
+    return render_template('admin/category_form.html', form=form, category=category)
+
+@admin_bp.route('/category/delete/<int:id>', methods=['POST'])
+def delete_category(id):
+    """Xóa danh mục"""
+    category = Category.query.get_or_404(id)
+    db.session.delete(category)
+    db.session.commit()
+    flash('Danh mục đã được xóa thành công!', 'success')
+    return redirect(url_for('admin.categories'))
+
+# Bổ sung các route cho Quản lý Bình luận
+@admin_bp.route('/comments')
+def comments():
+    """Quản lý bình luận"""
+    page = request.args.get('page', 1, type=int)
+    search = request.args.get('search', '')
+    status = request.args.get('status', 'all') 
+
+    query = Comment.query
+
+    if search:
+        query = query.outerjoin(User, Comment.user_id == User.id)\
+                     .outerjoin(Article, Comment.article_id == Article.id)\
+                     .filter(or_(Comment.content.contains(search),
+                                 User.username.contains(search),
+                                 User.full_name.contains(search),
+                                 Article.title.contains(search)))
+    
+    if status == 'approved':
+        query = query.filter_by(is_approved=True, is_hidden=False)
+    elif status == 'pending':
+        query = query.filter_by(is_approved=False)
+    elif status == 'hidden':
+        query = query.filter_by(is_hidden=True)
+
+    comments = query.order_by(Comment.created_at.desc())\
+        .paginate(page=page, per_page=20, error_out=False)
+    
+    return render_template('admin/comments.html', comments=comments, search=search, status=status)
+
+@admin_bp.route('/comment/toggle_approval/<int:id>', methods=['POST'])
+def toggle_comment_approval(id):
+    """Bật/tắt trạng thái duyệt bình luận"""
+    comment = Comment.query.get_or_404(id)
+    comment.is_approved = not comment.is_approved
+    db.session.commit()
+    flash('Trạng thái duyệt bình luận đã được cập nhật!', 'success')
+    return redirect(request.referrer or url_for('admin.comments'))
+
+@admin_bp.route('/comment/toggle_hidden/<int:id>', methods=['POST'])
+def toggle_comment_hidden(id):
+    """Bật/tắt trạng thái ẩn bình luận"""
+    comment = Comment.query.get_or_404(id)
+    comment.is_hidden = not comment.is_hidden
+    db.session.commit()
+    flash('Trạng thái ẩn bình luận đã được cập nhật!', 'success')
+    return redirect(request.referrer or url_for('admin.comments'))
+
+@admin_bp.route('/comment/delete/<int:id>', methods=['POST'])
+def delete_comment_admin(id):
+    """Xóa bình luận từ admin"""
+    comment = Comment.query.get_or_404(id)
+    db.session.delete(comment)
+    db.session.commit()
+    flash('Bình luận đã được xóa!', 'success')
+    return redirect(request.referrer or url_for('admin.comments'))
+
+# Bổ sung các route cho Quản lý Quảng cáo
+@admin_bp.route('/ads')
+def ads():
+    """Quản lý quảng cáo"""
+    page = request.args.get('page', 1, type=int)
+    search = request.args.get('search', '')
+    position = request.args.get('position', 'all') 
+
+    query = Advertisement.query
+
+    if search:
+        query = query.filter(Advertisement.title.contains(search))
+    
+    if position != 'all':
+        query = query.filter_by(position=position)
+
+    advertisements = query.order_by(Advertisement.created_at.desc())\
+        .paginate(page=page, per_page=20, error_out=False)
+    
+    # Danh sách vị trí cho filter (nếu bạn cần một cách linh hoạt hơn)
+    positions_choices = [
+        {'value': 'all', 'name': 'Tất cả vị trí'},
+        {'value': 'header', 'name': 'Header'},
+        {'value': 'sidebar', 'name': 'Sidebar'},
+        {'value': 'footer', 'name': 'Footer'},
+        {'value': 'inline', 'name': 'Trong bài viết'}
+    ]
+
+    return render_template('admin/advertisements.html', 
+                           advertisements=advertisements, 
+                           search=search, 
+                           position=position,
+                           positions_choices=positions_choices)
+
+@admin_bp.route('/ad/new', methods=['GET', 'POST'])
+@admin_bp.route('/ad/edit/<int:id>', methods=['GET', 'POST'])
+def advertisement_form(id=None):
+    """Form tạo/chỉnh sửa quảng cáo"""
+    advertisement = Advertisement.query.get(id) if id else None
+    form = AdvertisementForm() # Đảm bảo AdvertisementForm đã được import từ forms.py
+
+    if form.validate_on_submit():
+        if not advertisement:
+            advertisement = Advertisement()
+            db.session.add(advertisement)
+        
+        advertisement.title = form.title.data
+        advertisement.content = form.content.data
+        advertisement.image_url = form.image_url.data
+        advertisement.link_url = form.link_url.data
+        advertisement.position = form.position.data
+        advertisement.is_active = form.is_active.data
+        
+        db.session.commit()
+        action = 'tạo' if not id else 'cập nhật'
+        flash(f'Quảng cáo đã được {action} thành công!', 'success')
+        return redirect(url_for('admin.ads'))
+
+    if advertisement and request.method == 'GET':
+        form.title.data = advertisement.title
+        form.content.data = advertisement.content
+        form.image_url.data = advertisement.image_url
+        form.link_url.data = advertisement.link_url
+        form.position.data = advertisement.position
+        form.is_active.data = advertisement.is_active
+
+    return render_template('admin/advertisement_form.html', form=form, advertisement=advertisement)
+
+@admin_bp.route('/ad/delete/<int:id>', methods=['POST'])
+def delete_advertisement(id):
+    """Xóa quảng cáo"""
+    advertisement = Advertisement.query.get_or_404(id)
+    db.session.delete(advertisement)
+    db.session.commit()
+    flash('Quảng cáo đã được xóa thành công!', 'success')
+    return redirect(url_for('admin.ads'))
+
+
 # ========== API ROUTES ==========
 
 @api_bp.route('/articles/popular')
-def popular_articles_api(): # Đổi tên hàm để tránh trùng với hàm trong context processor
+def popular_articles_api():
     """API lấy bài viết phổ biến"""
     articles = Article.query.filter_by(is_published=True)\
         .order_by(Article.views_count.desc())\
@@ -424,7 +619,7 @@ def popular_articles_api(): # Đổi tên hàm để tránh trùng với hàm tr
         'slug': article.slug,
         'view_count': article.views_count,
         'published_at': article.published_at.isoformat() if article.published_at else None,
-        'summary': article.summary # Có thể thêm summary nếu cần
+        'summary': article.summary
     } for article in articles])
 
 @api_bp.route('/search/suggestions')
@@ -461,6 +656,17 @@ def truncate_html_filter(text, length=150):
     # Sử dụng hàm generate_excerpt từ utils để xử lý HTML
     return generate_excerpt(text, length)
 
+# THÊM FILTER 'number' VÀO ĐÂY ĐỂ KHẮC PHỤC LỖI "No filter named 'number'."
+@main_bp.app_template_filter('number')
+def number_filter(value):
+    """Filter để định dạng số (ví dụ: thêm dấu phẩy phân cách hàng nghìn)"""
+    try:
+        # Định dạng số nguyên với dấu phẩy phân cách hàng nghìn, không có phần thập phân
+        return "{:,.0f}".format(value)
+    except (ValueError, TypeError):
+        # Nếu giá trị không phải số, trả về nguyên bản dưới dạng chuỗi
+        return str(value)
+
 # ========== CONTEXT PROCESSORS ==========
 
 @main_bp.app_context_processor
@@ -469,13 +675,12 @@ def inject_global_data():
     categories = Category.query.filter_by(is_active=True).all()
 
     # Lấy bài viết phổ biến cho sidebar
-    # Đảm bảo hàm này không trùng tên với API nếu cả hai được gọi trong cùng context
     popular_articles_for_sidebar = Article.query.filter_by(is_published=True)\
         .order_by(Article.views_count.desc()).limit(5).all()
 
     return {
         'global_categories': categories,
-        'popular_articles': popular_articles_for_sidebar # Đổi tên biến để rõ ràng hơn
+        'popular_articles': popular_articles_for_sidebar
     }
 
 # ========== ERROR HANDLERS ==========

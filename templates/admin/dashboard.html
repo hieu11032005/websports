@@ -15,10 +15,12 @@
         </div>
         
         <div class="d-flex gap-2">
+            {# Sửa: admin_add_article -> admin.article_form #}
             <a href="{{ url_for('admin.article_form') }}" class="btn btn-primary">
                 <i class="fas fa-plus me-2"></i>
                 Viết bài mới
             </a>
+            {# main.index là đúng vì nó thuộc main_bp #}
             <a href="{{ url_for('main.index') }}" class="btn btn-outline-secondary">
                 <i class="fas fa-eye me-2"></i>
                 Xem website
@@ -42,6 +44,7 @@
                     </div>
                 </div>
                 <div class="card-footer bg-primary bg-opacity-25">
+                    {# Sửa: admin_articles -> admin.articles #}
                     <a href="{{ url_for('admin.articles') }}" class="text-white text-decoration-none">
                         <small>Xem tất cả <i class="fas fa-arrow-right"></i></small>
                     </a>
@@ -63,6 +66,7 @@
                     </div>
                 </div>
                 <div class="card-footer bg-success bg-opacity-25">
+                    {# Sửa: admin_users -> admin.users #}
                     <a href="{{ url_for('admin.users') }}" class="text-white text-decoration-none">
                         <small>Quản lý user <i class="fas fa-arrow-right"></i></small>
                     </a>
@@ -84,6 +88,7 @@
                     </div>
                 </div>
                 <div class="card-footer bg-info bg-opacity-25">
+                    {# Giữ href="#" vì chưa có route admin.comments. Khi có, sẽ sửa thành url_for('admin.comments') #}
                     <a href="#" class="text-white text-decoration-none">
                         <small>Kiểm duyệt <i class="fas fa-arrow-right"></i></small>
                     </a>
@@ -105,6 +110,7 @@
                     </div>
                 </div>
                 <div class="card-footer bg-warning bg-opacity-25">
+                    {# Giữ href="#" vì chưa có route admin.categories. Khi có, sẽ sửa thành url_for('admin.categories') #}
                     <a href="#" class="text-white text-decoration-none">
                         <small>Quản lý <i class="fas fa-arrow-right"></i></small>
                     </a>
@@ -153,6 +159,7 @@
                         <i class="fas fa-newspaper me-2"></i>
                         Bài viết mới nhất
                     </h6>
+                    {# Sửa: admin_articles -> admin.articles #}
                     <a href="{{ url_for('admin.articles') }}" class="btn btn-sm btn-outline-primary">
                         Xem tất cả
                     </a>
@@ -165,6 +172,7 @@
                             <div class="d-flex justify-content-between align-items-start">
                                 <div class="flex-grow-1">
                                     <h6 class="mb-1">
+                                        {# main.article_detail là đúng #}
                                         <a href="{{ url_for('main.article_detail', slug=article.slug) }}" 
                                            class="text-decoration-none" target="_blank">
                                             {{ article.title|truncate(60) }}
@@ -189,12 +197,18 @@
                                         <i class="fas fa-ellipsis-v"></i>
                                     </button>
                                     <ul class="dropdown-menu">
-                                        <li><a class="dropdown-item" href="{{ url_for('admin.article_form', id=article.id) }}">
-                                            <i class="fas fa-edit me-2"></i>Chỉnh sửa
-                                        </a></li>
-                                        <li><a class="dropdown-item" href="{{ url_for('main.article_detail', slug=article.slug) }}" target="_blank">
-                                            <i class="fas fa-eye me-2"></i>Xem bài viết
-                                        </a></li>
+                                        <li>
+                                            {# Sửa: admin_article_form -> admin.article_form #}
+                                            <a class="dropdown-item" href="{{ url_for('admin.article_form', id=article.id) }}">
+                                                <i class="fas fa-edit me-2"></i>Chỉnh sửa
+                                            </a>
+                                        </li>
+                                        <li>
+                                            {# main.article_detail là đúng #}
+                                            <a class="dropdown-item" href="{{ url_for('main.article_detail', slug=article.slug) }}" target="_blank">
+                                                <i class="fas fa-eye me-2"></i>Xem bài viết
+                                            </a>
+                                        </li>
                                         <li><hr class="dropdown-divider"></li>
                                         <li><a class="dropdown-item text-danger" href="#" 
                                                onclick="deleteArticle({{ article.id }})">
@@ -231,6 +245,7 @@
                         <div class="list-group-item">
                             <div class="d-flex align-items-start">
                                 {% if comment.author.avatar_url %}
+                                {# Đảm bảo url_for('static', filename=...) đúng nếu avatar_url chỉ là tên file #}
                                 <img src="{{ url_for('static', filename='uploads/avatars/' + comment.author.avatar_url) }}" 
                                      alt="{{ comment.author.full_name or comment.author.username }}" 
                                      class="rounded-circle me-3" width="40" height="40" style="object-fit: cover;">
@@ -249,6 +264,7 @@
                                     <p class="mb-2">{{ comment.content|truncate(100) }}</p>
                                     <small class="text-muted">
                                         Trên bài viết: 
+                                        {# main.article_detail là đúng #}
                                         <a href="{{ url_for('main.article_detail', slug=comment.article.slug) }}" 
                                            class="text-decoration-none" target="_blank">
                                             {{ comment.article.title|truncate(50) }}
@@ -289,24 +305,28 @@
                 <div class="card-body">
                     <div class="row">
                         <div class="col-md-3 mb-3">
+                            {# Sửa: admin_add_article -> admin.article_form #}
                             <a href="{{ url_for('admin.article_form') }}" class="btn btn-outline-primary w-100 h-100 d-flex flex-column align-items-center justify-content-center p-3">
                                 <i class="fas fa-plus fa-2x mb-2"></i>
                                 <span>Tạo bài viết mới</span>
                             </a>
                         </div>
                         <div class="col-md-3 mb-3">
+                            {# Sửa: admin_articles -> admin.articles #}
                             <a href="{{ url_for('admin.articles') }}" class="btn btn-outline-success w-100 h-100 d-flex flex-column align-items-center justify-content-center p-3">
                                 <i class="fas fa-edit fa-2x mb-2"></i>
                                 <span>Quản lý bài viết</span>
                             </a>
                         </div>
                         <div class="col-md-3 mb-3">
+                            {# Sửa: admin_users -> admin.users #}
                             <a href="{{ url_for('admin.users') }}" class="btn btn-outline-info w-100 h-100 d-flex flex-column align-items-center justify-content-center p-3">
                                 <i class="fas fa-users fa-2x mb-2"></i>
                                 <span>Quản lý người dùng</span>
                             </a>
                         </div>
                         <div class="col-md-3 mb-3">
+                            {# Giữ href="#" vì chưa có route admin.settings. Khi có, sẽ sửa thành url_for('admin.settings') #}
                             <a href="#" class="btn btn-outline-warning w-100 h-100 d-flex flex-column align-items-center justify-content-center p-3">
                                 <i class="fas fa-cog fa-2x mb-2"></i>
                                 <span>Cài đặt hệ thống</span>
@@ -327,7 +347,8 @@
 <script>
 // Stats Chart
 const statsCtx = document.getElementById('statsChart').getContext('2d');
-const statsData = {{ stats|tojson }};
+// statsData này được truyền từ backend (routes.py) và đã được chuyển thành JSON
+const statsData = {{ stats|tojson }}; 
 
 new Chart(statsCtx, {
     type: 'line',
@@ -371,6 +392,7 @@ new Chart(statsCtx, {
 const categoryCtx = document.getElementById('categoryChart').getContext('2d');
 
 // Sample data - in real app, this would come from the backend
+// Cần truyền dữ liệu này từ backend (vd: tổng số bài viết theo từng danh mục)
 const categoryData = {
     labels: ['Bóng đá', 'Bóng rổ', 'Tennis', 'Olympic', 'Khác'],
     datasets: [{
@@ -398,22 +420,24 @@ new Chart(categoryCtx, {
     }
 });
 
-// Delete article function
+// Delete article function (Đảm bảo hàm này giống với hàm trong admin/articles.html nếu muốn đồng bộ)
 function deleteArticle(articleId) {
     if (confirm('Bạn có chắc chắn muốn xóa bài viết này?')) {
-        // Create a form and submit it
+        // Tạo một form ảo để gửi POST request với CSRF token
         const form = document.createElement('form');
         form.method = 'POST';
         form.action = `/admin/article/delete/${articleId}`;
         
-        // Add CSRF token
-        const csrfToken = document.querySelector('meta[name=csrf-token]');
-        if (csrfToken) {
+        // Thêm CSRF token
+        const csrfTokenMeta = document.querySelector('meta[name="csrf-token"]'); // Lấy từ meta tag nếu có
+        if (csrfTokenMeta) {
             const csrfInput = document.createElement('input');
             csrfInput.type = 'hidden';
             csrfInput.name = 'csrf_token';
-            csrfInput.value = csrfToken.getAttribute('content');
+            csrfInput.value = csrfTokenMeta.getAttribute('content');
             form.appendChild(csrfInput);
+        } else {
+            console.warn('CSRF token meta tag not found. Delete might fail.');
         }
         
         document.body.appendChild(form);
@@ -421,13 +445,14 @@ function deleteArticle(articleId) {
     }
 }
 
+
 // Real-time updates (optional enhancement)
 function updateStats() {
-    // In a real application, you would fetch updated stats from the server
+    // Trong ứng dụng thực tế, bạn sẽ fetch dữ liệu thống kê cập nhật từ server API
     console.log('Updating stats...');
 }
 
-// Update stats every 5 minutes
+// Update stats every 5 minutes (Ví dụ: fetch từ API)
 setInterval(updateStats, 5 * 60 * 1000);
 
 // Add loading animation to cards

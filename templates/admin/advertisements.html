@@ -1,0 +1,143 @@
+{% extends "base.html" %}
+
+{% block title %}Quản Lý Quảng Cáo - Admin{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <!-- Sidebar (Copy from articles.html or dashboard.html) -->
+        <div class="col-md-3 col-lg-2">
+            <div class="admin-sidebar bg-light rounded p-3">
+                <h5 class="fw-bold mb-3">
+                    <i class="fas fa-cog me-2"></i>Quản Trị
+                </h5>
+                <nav class="nav flex-column">
+                    <a class="nav-link" href="{{ url_for('admin.dashboard') }}">
+                        <i class="fas fa-chart-line me-2"></i>Dashboard
+                    </a>
+                    <a class="nav-link" href="{{ url_for('admin.articles') }}">
+                        <i class="fas fa-newspaper me-2"></i>Bài viết
+                    </a>
+                    <a class="nav-link" href="{{ url_for('admin.categories') }}">
+                        <i class="fas fa-folder me-2"></i>Danh mục
+                    </a>
+                    <a class="nav-link" href="{{ url_for('admin.users') }}">
+                        <i class="fas fa-users me-2"></i>Người dùng
+                    </a>
+                    <a class="nav-link" href="{{ url_for('admin.comments') }}">
+                        <i class="fas fa-comments me-2"></i>Bình luận
+                    </a>
+                    <a class="nav-link active" href="{{ url_for('admin.ads') }}"> {# active cho trang hiện tại #}
+                        <i class="fas fa-ad me-2"></i>Quảng cáo
+                    </a>
+                </nav>
+            </div>
+        </div>
+
+        <div class="col-md-9 col-lg-10">
+            <h2>Quản Lý Quảng Cáo</h2>
+            <a href="{{ url_for('admin.advertisement_form') }}" class="btn btn-primary mb-3">Thêm Quảng Cáo Mới</a>
+            
+            <!-- Filters -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <form method="GET" class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label">Tìm kiếm</label>
+                            <input type="text" name="search" class="form-control" placeholder="Tìm kiếm tiêu đề quảng cáo..." value="{{ search }}">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Vị trí</label>
+                            <select name="position" class="form-select">
+                                {% for choice in positions_choices %}
+                                <option value="{{ choice.value }}" {{ 'selected' if position == choice.value else '' }}>
+                                    {{ choice.name }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-4 d-flex align-items-end">
+                            <button type="submit" class="btn btn-primary me-2">
+                                <i class="fas fa-filter me-1"></i>Lọc
+                            </button>
+                            <a href="{{ url_for('admin.ads') }}" class="btn btn-outline-secondary">
+                                <i class="fas fa-times me-1"></i>Xóa bộ lọc
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            {% if advertisements.items %}
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Tiêu đề</th>
+                        <th>Nội dung</th>
+                        <th>Ảnh</th>
+                        <th>Link</th>
+                        <th>Vị trí</th>
+                        <th>Kích hoạt</th>
+                        <th>Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for ad in advertisements.items %}
+                    <tr>
+                        <td>{{ ad.id }}</td>
+                        <td>{{ ad.title|truncate(50) }}</td>
+                        <td>{{ ad.content|truncate(50) }}</td>
+                        <td>
+                            {% if ad.image_url %}
+                            <img src="{{ ad.image_url }}" alt="{{ ad.title }}" style="width: 80px; height: 60px; object-fit: cover;">
+                            {% else %}
+                            N/A
+                            {% endif %}
+                        </td>
+                        <td><a href="{{ ad.link_url }}" target="_blank">{{ ad.link_url|truncate(40) }}</a></td>
+                        <td>{{ ad.position }}</td>
+                        <td>{{ 'Có' if ad.is_active else 'Không' }}</td>
+                        <td>
+                            <a href="{{ url_for('admin.advertisement_form', id=ad.id) }}" class="btn btn-sm btn-info">Sửa</a>
+                            <form action="{{ url_for('admin.delete_advertisement', id=ad.id) }}" method="POST" style="display:inline;">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Bạn có chắc chắn muốn xóa quảng cáo này?');">Xóa</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <p>Chưa có quảng cáo nào.</p>
+            {% endif %}
+
+            {# Pagination (copy from articles.html or categories.html) #}
+            {% if advertisements.pages > 1 %}
+            <nav aria-label="Phân trang quảng cáo">
+                <ul class="pagination">
+                    {% if advertisements.has_prev %}
+                    <li class="page-item"><a class="page-link" href="{{ url_for('admin.ads', page=advertisements.prev_num, **request.args) }}">Trước</a></li>
+                    {% endif %}
+                    {% for page_num in advertisements.iter_pages() %}
+                        {% if page_num %}
+                            {% if page_num != advertisements.page %}
+                            <li class="page-item"><a class="page-link" href="{{ url_for('admin.ads', page=page_num, **request.args) }}">{{ page_num }}</a></li>
+                            {% else %}
+                            <li class="page-item active"><span class="page-link">{{ page_num }}</span></li>
+                            {% endif %}
+                        {% else %}
+                        <li class="page-item disabled"><span class="page-link">...</span></li>
+                        {% endif %}
+                    {% endfor %}
+                    {% if advertisements.has_next %}
+                    <li class="page-item"><a class="page-link" href="{{ url_for('admin.ads', page=advertisements.next_num, **request.args) }}">Sau</a></li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

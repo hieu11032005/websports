@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+
+{% block title %}{% if category %}Sửa{% else %}Thêm{% endif %} Danh Mục - Admin{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        {# Bạn có thể copy phần sidebar từ admin/articles.html vào đây nếu muốn #}
+        <div class="col-md-3 col-lg-2">
+            <!-- Admin Sidebar (Copy from articles.html) -->
+            <div class="admin-sidebar bg-light rounded p-3">
+                <h5 class="fw-bold mb-3">
+                    <i class="fas fa-cog me-2"></i>Quản Trị
+                </h5>
+                <nav class="nav flex-column">
+                    <a class="nav-link" href="{{ url_for('admin.dashboard') }}">
+                        <i class="fas fa-chart-line me-2"></i>Dashboard
+                    </a>
+                    <a class="nav-link" href="{{ url_for('admin.articles') }}">
+                        <i class="fas fa-newspaper me-2"></i>Bài viết
+                    </a>
+                    <a class="nav-link active" href="{{ url_for('admin.categories') }}">
+                        <i class="fas fa-folder me-2"></i>Danh mục
+                    </a>
+                    <a class="nav-link" href="{{ url_for('admin.users') }}">
+                        <i class="fas fa-users me-2"></i>Người dùng
+                    </a>
+                    <a class="nav-link" href="{{ url_for('admin.comments') }}">
+                        <i class="fas fa-comments me-2"></i>Bình luận
+                    </a>
+                    <a class="nav-link" href="{{ url_for('admin.ads') }}">
+                        <i class="fas fa-ad me-2"></i>Quảng cáo
+                    </a>
+                </nav>
+            </div>
+        </div>
+
+        <div class="col-md-9 col-lg-10">
+            <h2>{% if category %}Sửa{% else %}Thêm{% endif %} Danh Mục</h2>
+            <form method="POST">
+                {{ form.csrf_token }}
+                <div class="mb-3">
+                    {{ form.name.label(class="form-label") }}
+                    {{ form.name(class="form-control") }}
+                    {% if form.name.errors %}
+                        <div class="text-danger">
+                            {% for error in form.name.errors %}{{ error }}{% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="mb-3">
+                    {{ form.description.label(class="form-label") }}
+                    {{ form.description(class="form-control") }}
+                    {% if form.description.errors %}
+                        <div class="text-danger">
+                            {% for error in form.description.errors %}{{ error }}{% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="mb-3">
+                    {{ form.icon.label(class="form-label") }}
+                    {{ form.icon(class="form-control") }}
+                    {% if form.icon.errors %}
+                        <div class="text-danger">
+                            {% for error in form.icon.errors %}{{ error }}{% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="mb-3">
+                    {{ form.color.label(class="form-label") }}
+                    {{ form.color(class="form-control") }}
+                    {% if form.color.errors %}
+                        <div class="text-danger">
+                            {% for error in form.color.errors %}{{ error }}{% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="mb-3 form-check">
+                    {{ form.is_active(class="form-check-input") }}
+                    {{ form.is_active.label(class="form-check-label") }}
+                    {% if form.is_active.errors %}
+                        <div class="text-danger">
+                            {% for error in form.is_active.errors %}{{ error }}{% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+                <button type="submit" class="btn btn-primary">Lưu</button>
+                <a href="{{ url_for('admin.categories') }}" class="btn btn-secondary">Hủy</a>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

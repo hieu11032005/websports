@@ -12,22 +12,28 @@
                     <i class="fas fa-cog me-2"></i>Quản Trị
                 </h5>
                 <nav class="nav flex-column">
-                    <a class="nav-link" href="{{ url_for('admin_dashboard') }}">
+                    {# Sửa: admin_dashboard -> admin.dashboard #}
+                    <a class="nav-link" href="{{ url_for('admin.dashboard') }}">
                         <i class="fas fa-chart-line me-2"></i>Dashboard
                     </a>
-                    <a class="nav-link active" href="{{ url_for('admin_articles') }}">
+                    {# Sửa: admin_articles -> admin.articles (Đây là trang hiện tại, nhưng vẫn sửa để nhất quán) #}
+                    <a class="nav-link active" href="{{ url_for('admin.articles') }}">
                         <i class="fas fa-newspaper me-2"></i>Bài viết
                     </a>
-                    <a class="nav-link" href="{{ url_for('admin_categories') }}">
+                    {# Sửa: admin_categories -> admin.categories (Giả sử có hàm 'categories' trong admin_bp) #}
+                    <a class="nav-link" href="{{ url_for('admin.categories') }}">
                         <i class="fas fa-folder me-2"></i>Danh mục
                     </a>
-                    <a class="nav-link" href="{{ url_for('admin_users') }}">
+                    {# Sửa: admin_users -> admin.users (Giả sử có hàm 'users' trong admin_bp) #}
+                    <a class="nav-link" href="{{ url_for('admin.users') }}">
                         <i class="fas fa-users me-2"></i>Người dùng
                     </a>
-                    <a class="nav-link" href="{{ url_for('admin_comments') }}">
+                    {# Sửa: admin_comments -> admin.comments (Giả sử có hàm 'comments' trong admin_bp) #}
+                    <a class="nav-link" href="{{ url_for('admin.comments') }}">
                         <i class="fas fa-comments me-2"></i>Bình luận
                     </a>
-                    <a class="nav-link" href="{{ url_for('admin_ads') }}">
+                    {# Sửa: admin_ads -> admin.ads (Giả sử có hàm 'ads' trong admin_bp) #}
+                    <a class="nav-link" href="{{ url_for('admin.ads') }}">
                         <i class="fas fa-ad me-2"></i>Quảng cáo
                     </a>
                 </nav>
@@ -46,7 +52,8 @@
                         <p class="text-muted mb-0">Tạo và quản lý nội dung tin tức</p>
                     </div>
                     <div class="col-auto">
-                        <a href="{{ url_for('admin_add_article') }}" class="btn btn-primary">
+                        {# Sửa: admin_add_article -> admin.article_form (vì hàm xử lý là 'article_form' trong routes.py) #}
+                        <a href="{{ url_for('admin.article_form') }}" class="btn btn-primary">
                             <i class="fas fa-plus me-1"></i>Thêm Bài Viết
                         </a>
                     </div>
@@ -92,7 +99,8 @@
                             <button type="submit" class="btn btn-primary me-2">
                                 <i class="fas fa-filter me-1"></i>Lọc
                             </button>
-                            <a href="{{ url_for('admin_articles') }}" class="btn btn-outline-secondary">
+                            {# Sửa: admin_articles -> admin.articles #}
+                            <a href="{{ url_for('admin.articles') }}" class="btn btn-outline-secondary">
                                 <i class="fas fa-times me-1"></i>Xóa bộ lọc
                             </a>
                         </div>
@@ -128,7 +136,8 @@
                                             {% endif %}
                                             <div>
                                                 <h6 class="mb-1">
-                                                    <a href="{{ url_for('article_detail', slug=article.slug) }}" 
+                                                    {# Endpoint cho bài viết chi tiết ở main_bp là đúng #}
+                                                    <a href="{{ url_for('main.article_detail', slug=article.slug) }}" 
                                                        class="text-decoration-none" target="_blank">
                                                         {{ article.title|truncate(80) }}
                                                     </a>
@@ -198,12 +207,14 @@
                                             </button>
                                             <ul class="dropdown-menu">
                                                 <li>
-                                                    <a class="dropdown-item" href="{{ url_for('admin_edit_article', id=article.id) }}">
+                                                    {# Sửa: admin_edit_article -> admin.article_form (vì hàm xử lý là 'article_form' trong routes.py) #}
+                                                    <a class="dropdown-item" href="{{ url_for('admin.article_form', id=article.id) }}">
                                                         <i class="fas fa-edit me-2"></i>Chỉnh sửa
                                                     </a>
                                                 </li>
                                                 <li>
-                                                    <a class="dropdown-item" href="{{ url_for('article_detail', slug=article.slug) }}" target="_blank">
+                                                    {# Endpoint cho bài viết chi tiết ở main_bp là đúng #}
+                                                    <a class="dropdown-item" href="{{ url_for('main.article_detail', slug=article.slug) }}" target="_blank">
                                                         <i class="fas fa-eye me-2"></i>Xem bài viết
                                                     </a>
                                                 </li>
@@ -236,7 +247,8 @@
                             <ul class="pagination mb-0">
                                 {% if articles.has_prev %}
                                 <li class="page-item">
-                                    <a class="page-link" href="{{ url_for('admin_articles', page=articles.prev_num, **request.args) }}">
+                                    {# Sửa: admin_articles -> admin.articles #}
+                                    <a class="page-link" href="{{ url_for('admin.articles', page=articles.prev_num, **request.args) }}">
                                         <i class="fas fa-chevron-left"></i>
                                     </a>
                                 </li>
@@ -246,7 +258,8 @@
                                     {% if page_num %}
                                         {% if page_num != articles.page %}
                                         <li class="page-item">
-                                            <a class="page-link" href="{{ url_for('admin_articles', page=page_num, **request.args) }}">
+                                            {# Sửa: admin_articles -> admin.articles #}
+                                            <a class="page-link" href="{{ url_for('admin.articles', page=page_num, **request.args) }}">
                                                 {{ page_num }}
                                             </a>
                                         </li>
@@ -264,7 +277,8 @@
                                 
                                 {% if articles.has_next %}
                                 <li class="page-item">
-                                    <a class="page-link" href="{{ url_for('admin_articles', page=articles.next_num, **request.args) }}">
+                                    {# Sửa: admin_articles -> admin.articles #}
+                                    <a class="page-link" href="{{ url_for('admin.articles', page=articles.next_num, **request.args) }}">
                                         <i class="fas fa-chevron-right"></i>
                                     </a>
                                 </li>
@@ -286,7 +300,8 @@
                         <i class="fas fa-newspaper fa-4x text-muted mb-3"></i>
                         <h4 class="text-muted">Chưa có bài viết nào</h4>
                         <p class="text-muted mb-4">Bắt đầu tạo bài viết đầu tiên của bạn</p>
-                        <a href="{{ url_for('admin_add_article') }}" class="btn btn-primary">
+                        {# Sửa: admin_add_article -> admin.article_form (vì hàm xử lý là 'article_form' trong routes.py) #}
+                        <a href="{{ url_for('admin.article_form') }}" class="btn btn-primary">
                             <i class="fas fa-plus me-2"></i>Thêm Bài Viết
                         </a>
                     </div>
@@ -302,6 +317,8 @@
 <script>
 // Toggle featured status
 function toggleFeatured(articleId) {
+    // Lưu ý: Endpoint này '/admin/api/articles/${articleId}/toggle-featured' có thể chưa được định nghĩa
+    // trong routes.py. Nếu chưa có, bạn cần thêm nó vào blueprint api_bp hoặc admin_bp
     fetch(`/admin/api/articles/${articleId}/toggle-featured`, {
         method: 'POST',
         headers: {
@@ -324,16 +341,20 @@ function toggleFeatured(articleId) {
 
 // Delete article
 function deleteArticle(articleId) {
+    // Lưu ý: Endpoint này '/admin/articles/${articleId}/delete' đã có trong routes.py
+    // Nhưng bạn cần đảm bảo nó trả về JSON hoặc có cách xử lý redirect sau khi xóa
     if (confirm('Bạn có chắc chắn muốn xóa bài viết này? Hành động này không thể hoàn tác.')) {
         fetch(`/admin/articles/${articleId}/delete`, {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json',
+                'Content-Type': 'application/json', // Đặt header này nhưng server có thể không cần JSON
             }
         })
         .then(response => {
+            // routes.py hiện tại redirect, nên response.ok sẽ là true cho redirect 302
+            // và cần đảm bảo Flask gửi Flash message về để trang web reload đúng
             if (response.ok) {
-                location.reload();
+                location.reload(); // Reload trang để thấy sự thay đổi
             } else {
                 alert('Có lỗi xảy ra khi xóa bài viết');
             }
